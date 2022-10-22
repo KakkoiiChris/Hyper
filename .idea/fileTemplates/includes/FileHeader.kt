@@ -1,6 +1,5 @@
 /**
  * ${PROJECT_NAME}
- 
  * Copyright (C) ${YEAR}, KakkoiiChris
  * 
  * File:    ${NAME}.kt
