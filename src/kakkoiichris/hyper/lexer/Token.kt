@@ -67,8 +67,8 @@ data class Token(val location: Location, val type: Type) {
             DOUBLE_LESS_EQUAL("<<="),
             DOUBLE_GREATER_EQUAL(">>="),
             TRIPLE_GREATER_EQUAL(">>>="),
-            OR("||"),
-            AND("&&"),
+            DOUBLE_PIPE("||"),
+            DOUBLE_AMPERSAND("&&"),
             PIPE("|"),
             CARET("^"),
             AMPERSAND("&"),
@@ -107,20 +107,18 @@ data class Token(val location: Location, val type: Type) {
             LEFT_BRACE("{"),
             RIGHT_BRACE("}"),
             COMMA(","),
-            SEMICOLON(";"),
-            NUL("0");
+            END_OF_LINE(";"),
+            END_OF_FILE("0");
         }
         
-        class Value(val value: Any) : Type
+        data class Value(val value: Any) : Type
         
-        class Identifier(val value: String) : Type
+        data class Identifier(val value: String) : Type
         
-        sealed class Template(val value: String) : Type {
-            class Left(value: String) : Template(value)
-            
-            class Middle(value: String) : Template(value)
-            
-            class Right(value: String) : Template(value)
-        }
+        data class LeftTemplate(val value: String) : Type
+        
+        data class MiddleTemplate(val value: String) : Type
+        
+        data class RightTemplate(val value: String) : Type
     }
 }
