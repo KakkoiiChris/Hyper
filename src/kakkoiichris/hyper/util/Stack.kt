@@ -21,19 +21,14 @@ package kakkoiichris.hyper.util
  * @author Christian Bryce Alexander
  */
 class Stack<X> {
-    private val elements = mutableListOf<X>()
-    
+    private val elements = ArrayDeque<X>()
+
     fun peek() =
-        if (elements.isNotEmpty())
-            elements.last()
-        else
-            null
-    
-    fun push(x: X) {
-        elements.add(x)
-    }
-    
-    fun pop() {
-        elements.remove(peek())
-    }
+        elements.lastOrNull()
+
+    fun push(x: X) =
+        elements.addLast(x)
+
+    fun pop() =
+        elements.removeLastOrNull()
 }

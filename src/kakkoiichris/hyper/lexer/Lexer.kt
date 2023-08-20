@@ -13,7 +13,6 @@ package kakkoiichris.hyper.lexer
 
 import kakkoiichris.hyper.util.HyperError
 import kakkoiichris.hyper.util.Source
-import kakkoiichris.hyper.util.Stack
 
 /**
  * Hyper
@@ -28,9 +27,9 @@ class Lexer(private val source: Source) : Iterator<Token> {
     companion object {
         const val NUL = '\u0000'
 
-        val keywords = Token.Type.Keyword.values().associateBy { it.name.lowercase() }
+        val keywords = Keyword.values().associateBy { it.name.lowercase() }
 
-        val dataTypes = Token.Type.DataType.values().associateBy { it.name.lowercase() }
+        val dataTypes = DataType.values().associateBy { it.name.lowercase() }
 
         val literals = listOf(true, false).associateBy { it.toString() }
     }
@@ -79,7 +78,7 @@ class Lexer(private val source: Source) : Iterator<Token> {
             }
         }
 
-        return Token(here(), Token.Type.Symbol.END_OF_FILE)
+        return Token(here(), Symbol.END_OF_FILE)
     }
 
     private fun here() =
@@ -243,7 +242,7 @@ class Lexer(private val source: Source) : Iterator<Token> {
 
         val context = start..<here()
 
-        val type = Token.Type.Value(number)
+        val type = Value(number)
 
         return Token(context, type)
     }
@@ -285,7 +284,7 @@ class Lexer(private val source: Source) : Iterator<Token> {
 
         val context = start..<here()
 
-        val type = Token.Type.Value(number)
+        val type = Value(number)
 
         return Token(context, type)
     }
@@ -329,7 +328,7 @@ class Lexer(private val source: Source) : Iterator<Token> {
 
             val context = start..<here()
 
-            val type = Token.Type.Value(number)
+            val type = Value(number)
 
             return Token(context, type)
         }
@@ -367,7 +366,7 @@ class Lexer(private val source: Source) : Iterator<Token> {
 
         val context = start..<here()
 
-        val type = Token.Type.Value(number)
+        val type = Value(number)
 
         return Token(context, type)
     }
@@ -399,10 +398,10 @@ class Lexer(private val source: Source) : Iterator<Token> {
         val literal = literals[result]
 
         if (literal != null) {
-            return Token(context, Token.Type.Value(literal))
+            return Token(context, Value(literal))
         }
 
-        return Token(context, Token.Type.Identifier(result))
+        return Token(context, Identifier(result))
     }
 
     private fun unicode(size: Int): Char {
@@ -477,7 +476,7 @@ class Lexer(private val source: Source) : Iterator<Token> {
 
         val context = start..<here()
 
-        return Token(context, Token.Type.Value(result))
+        return Token(context, Value(result))
     }
 
     private fun Char.isEndOfLine() =
@@ -563,9 +562,9 @@ class Lexer(private val source: Source) : Iterator<Token> {
         val context = start..<here()
 
         val type = if (movedIn)
-            Token.Type.LeftTemplate(result)
+            LeftTemplate(result)
         else
-            Token.Type.Value(result)
+            Value(result)
 
         return Token(context, type)
     }
@@ -608,9 +607,9 @@ class Lexer(private val source: Source) : Iterator<Token> {
         val context = start..<here()
 
         val type = if (movedOut)
-            Token.Type.RightTemplate(result)
+            RightTemplate(result)
         else
-            Token.Type.MiddleTemplate(result)
+            MiddleTemplate(result)
 
         return Token(context, type)
     }
@@ -620,154 +619,154 @@ class Lexer(private val source: Source) : Iterator<Token> {
 
         val type = when {
             skip('=') -> when {
-                skip('=') -> Token.Type.Symbol.DOUBLE_EQUAL
+                skip('=') -> Symbol.DOUBLE_EQUAL
 
-                else      -> Token.Type.Symbol.EQUAL_SIGN
+                else      -> Symbol.EQUAL_SIGN
             }
 
             skip('+') -> when {
-                skip('+') -> Token.Type.Symbol.DOUBLE_PLUS
+                skip('+') -> Symbol.DOUBLE_PLUS
 
-                skip('=') -> Token.Type.Symbol.PLUS_EQUAL
+                skip('=') -> Symbol.PLUS_EQUAL
 
-                else      -> Token.Type.Symbol.PLUS
+                else      -> Symbol.PLUS
             }
 
             skip('-') -> when {
-                skip('-') -> Token.Type.Symbol.DOUBLE_DASH
+                skip('-') -> Symbol.DOUBLE_DASH
 
-                skip('=') -> Token.Type.Symbol.DASH_EQUAL
+                skip('=') -> Symbol.DASH_EQUAL
 
-                skip('>') -> Token.Type.Symbol.ARROW
+                skip('>') -> Symbol.ARROW
 
-                else      -> Token.Type.Symbol.DASH
+                else      -> Symbol.DASH
             }
 
             skip('*') -> when {
-                skip('=') -> Token.Type.Symbol.STAR_EQUAL
+                skip('=') -> Symbol.STAR_EQUAL
 
-                else      -> Token.Type.Symbol.STAR
+                else      -> Symbol.STAR
             }
 
             skip('/') -> when {
-                skip('=') -> Token.Type.Symbol.SLASH_EQUAL
+                skip('=') -> Symbol.SLASH_EQUAL
 
-                else      -> Token.Type.Symbol.SLASH
+                else      -> Symbol.SLASH
             }
 
             skip('%') -> when {
-                skip('=') -> Token.Type.Symbol.PERCENT_EQUAL
+                skip('=') -> Symbol.PERCENT_EQUAL
 
-                else      -> Token.Type.Symbol.PERCENT
+                else      -> Symbol.PERCENT
             }
 
             skip('<') -> when {
                 skip('<') -> when {
-                    skip('=') -> Token.Type.Symbol.DOUBLE_LESS_EQUAL
+                    skip('=') -> Symbol.DOUBLE_LESS_EQUAL
 
-                    else      -> Token.Type.Symbol.DOUBLE_LESS
+                    else      -> Symbol.DOUBLE_LESS
                 }
 
-                skip('=') -> Token.Type.Symbol.LESS_EQUAL_SIGN
+                skip('=') -> Symbol.LESS_EQUAL_SIGN
 
-                else      -> Token.Type.Symbol.LESS_SIGN
+                else      -> Symbol.LESS_SIGN
             }
 
             skip('>') -> when {
                 skip('>') -> when {
                     skip('>') -> when {
-                        skip('=') -> Token.Type.Symbol.TRIPLE_GREATER_EQUAL
+                        skip('=') -> Symbol.TRIPLE_GREATER_EQUAL
 
-                        else      -> Token.Type.Symbol.TRIPLE_GREATER
+                        else      -> Symbol.TRIPLE_GREATER
                     }
 
-                    skip('=') -> Token.Type.Symbol.DOUBLE_GREATER_EQUAL
+                    skip('=') -> Symbol.DOUBLE_GREATER_EQUAL
 
-                    else      -> Token.Type.Symbol.DOUBLE_GREATER
+                    else      -> Symbol.DOUBLE_GREATER
                 }
 
-                skip('=') -> Token.Type.Symbol.GREATER_EQUAL_SIGN
+                skip('=') -> Symbol.GREATER_EQUAL_SIGN
 
-                else      -> Token.Type.Symbol.GREATER_SIGN
+                else      -> Symbol.GREATER_SIGN
             }
 
             skip('|') -> when {
-                skip('|') -> Token.Type.Symbol.DOUBLE_PIPE
+                skip('|') -> Symbol.DOUBLE_PIPE
 
-                skip('=') -> Token.Type.Symbol.PIPE_EQUAL
+                skip('=') -> Symbol.PIPE_EQUAL
 
-                else      -> Token.Type.Symbol.PIPE
+                else      -> Symbol.PIPE
             }
 
             skip('^') -> when {
-                skip('=') -> Token.Type.Symbol.CARET_EQUAL
+                skip('=') -> Symbol.CARET_EQUAL
 
-                else      -> Token.Type.Symbol.CARET
+                else      -> Symbol.CARET
             }
 
             skip('&') -> when {
-                skip('&') -> Token.Type.Symbol.DOUBLE_AMPERSAND
+                skip('&') -> Symbol.DOUBLE_AMPERSAND
 
-                skip('=') -> Token.Type.Symbol.AMPERSAND_EQUAL
+                skip('=') -> Symbol.AMPERSAND_EQUAL
 
-                else      -> Token.Type.Symbol.AMPERSAND
+                else      -> Symbol.AMPERSAND
             }
 
             skip('!') -> when {
                 match("in") && match(2) { it.isWhitespace() } -> {
                     skip("in")
 
-                    Token.Type.Symbol.EXCLAMATION_IN
+                    Symbol.EXCLAMATION_IN
                 }
 
                 match("is") && match(2) { it.isWhitespace() } -> {
                     skip("is")
 
-                    Token.Type.Symbol.EXCLAMATION_IS
+                    Symbol.EXCLAMATION_IS
                 }
 
-                skip('=')                                     -> Token.Type.Symbol.EXCLAMATION_EQUAL
+                skip('=')                                     -> Symbol.EXCLAMATION_EQUAL
 
-                else                                          -> Token.Type.Symbol.EXCLAMATION
+                else                                          -> Symbol.EXCLAMATION
             }
 
-            skip('~') -> Token.Type.Symbol.TILDE
+            skip('~') -> Symbol.TILDE
 
-            skip('#') -> Token.Type.Symbol.POUND
+            skip('#') -> Symbol.POUND
 
             skip('.') -> when {
                 skip('.') -> when {
-                    skip('.') -> Token.Type.Symbol.TRIPLE_DOT
+                    skip('.') -> Symbol.TRIPLE_DOT
 
-                    else      -> Token.Type.Symbol.DOUBLE_DOT
+                    else      -> Symbol.DOUBLE_DOT
                 }
 
-                else      -> Token.Type.Symbol.DOT
+                else      -> Symbol.DOT
             }
 
-            skip('(') -> Token.Type.Symbol.LEFT_PAREN
+            skip('(') -> Symbol.LEFT_PAREN
 
-            skip(')') -> Token.Type.Symbol.RIGHT_PAREN
+            skip(')') -> Symbol.RIGHT_PAREN
 
-            skip('[') -> Token.Type.Symbol.LEFT_SQUARE
+            skip('[') -> Symbol.LEFT_SQUARE
 
-            skip(']') -> Token.Type.Symbol.RIGHT_SQUARE
+            skip(']') -> Symbol.RIGHT_SQUARE
 
-            skip('{') -> Token.Type.Symbol.LEFT_BRACE
+            skip('{') -> Symbol.LEFT_BRACE
 
-            skip('}') -> Token.Type.Symbol.RIGHT_BRACE
+            skip('}') -> Symbol.RIGHT_BRACE
 
-            skip(',') -> Token.Type.Symbol.COMMA
+            skip(',') -> Symbol.COMMA
 
-            skip('@') -> Token.Type.Symbol.AT
+            skip('@') -> Symbol.AT
 
             skip(':') -> when {
-                skip(':') -> Token.Type.Symbol.DOUBLE_COLON
+                skip(':') -> Symbol.DOUBLE_COLON
 
-                else      -> Token.Type.Symbol.COLON
+                else      -> Symbol.COLON
             }
 
-            skip(';') -> Token.Type.Symbol.SEMICOLON
+            skip(';') -> Symbol.SEMICOLON
 
             else      -> HyperError.forLexer("Character '${peek()}' is invalid!", here())
         }

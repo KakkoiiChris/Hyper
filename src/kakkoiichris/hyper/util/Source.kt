@@ -13,7 +13,7 @@ package kakkoiichris.hyper.util
 
 /**
  * Hyper
- 
+
  * Copyright (C) 2022, KakkoiiChris
  *
  * File:    Source.kt
@@ -25,14 +25,14 @@ data class Source(val name: String, val text: String) {
     companion object {
         fun readLocal(path: String): Source {
             val name = path.substring(path.lastIndexOf('/') + 1, path.indexOf('.'))
-            
+
             val text = Source::class
-                .java
-                .getResourceAsStream(path)
-                ?.bufferedReader()
-                ?.readText()
-                ?: error("Could not read")
-            
+                           .java
+                           .getResourceAsStream(path)
+                           ?.bufferedReader()
+                           ?.readText()
+                       ?: error("Could not read")
+
             return Source(name, text)
         }
     }

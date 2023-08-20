@@ -11,9 +11,7 @@
  **********************************************/
 package kakkoiichris.hyper.parser
 
-import kakkoiichris.hyper.lexer.Context
-import kakkoiichris.hyper.lexer.Lexer
-import kakkoiichris.hyper.lexer.Token
+import kakkoiichris.hyper.lexer.*
 import kakkoiichris.hyper.util.HyperError
 
 /**
@@ -31,23 +29,24 @@ class Parser(private val lexer: Lexer) {
     fun parse(): Program {
         val stmts = mutableListOf<Stmt>()
 
-        while (!skip(Token.Type.Symbol.END_OF_FILE)) {
+        while (!skip(Symbol.END_OF_FILE)) {
             stmts += stmt()
         }
 
         return Program(stmts)
     }
 
-    private fun peek() = token
+    private fun peek() =
+        token
 
     private fun step() {
         token = lexer.next()
     }
 
-    private fun match(type: Token.Type) =
+    private fun match(type: Type) =
         peek().type == type
 
-    private fun matchAny(vararg types: Token.Type): Boolean {
+    private fun matchAny(vararg types: Type): Boolean {
         for (type in types) {
             if (peek().type == type) {
                 return true
@@ -57,7 +56,7 @@ class Parser(private val lexer: Lexer) {
         return false
     }
 
-    private fun skip(type: Token.Type) =
+    private fun skip(type: Type) =
         if (peek().type == type) {
             step()
             true
@@ -66,7 +65,7 @@ class Parser(private val lexer: Lexer) {
             false
         }
 
-    private fun skipAny(vararg types: Token.Type): Boolean {
+    private fun skipAny(vararg types: Type): Boolean {
         for (type in types) {
             if (peek().type == type) {
                 step()
@@ -77,12 +76,32 @@ class Parser(private val lexer: Lexer) {
         return false
     }
 
-    private fun mustSkip(type: Token.Type) {
+    private fun mustSkip(type: Type) {
         if (!skip(type)) {
             HyperError.forParser("Expected type $type; got ${peek().type} instead!", token.context)
         }
     }
 
-    private fun stmt() =
+    private fun here() =
+        peek().context
+
+    private fun stmt(): Stmt =
         Stmt.Empty(Context.none)
+        /*when {
+            matchAny(Keyword.LET, Keyword.VAR) -> declStmt()
+            match(Keyword.IF)                  -> ifStmt()
+            match(Keyword.MATCH)               -> matchStmt()
+            match(Keyword.LOOP)                -> loopStmt()
+            match(Keyword.WHILE)               -> whileStmt()
+            match(Keyword.UNTIL)               -> untilStmt()
+            match(Keyword.FOR)                 -> forStmt()
+            match(Keyword.DEF)                 -> defStmt()
+            match(Keyword.FUN)                 -> funStmt()
+            match(Keyword.STRUCT)              -> structStmt()
+            match(Keyword.ENUM)                -> enumStmt()
+            match(Keyword.BREAK)               -> breakStmt()
+            match(Keyword.CONTINUE)            -> continueStmt()
+            match(Keyword.RETURN)              -> returnStmt()
+            else                               -> TODO()
+        }*/
 }
