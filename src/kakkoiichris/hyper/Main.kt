@@ -49,7 +49,7 @@ private fun repl() {
     while (true) {
         print("> ")
         
-        val text = readLine()?.takeIf { it.isNotEmpty() } ?: break
+        val text = readln().takeIf { it.isNotEmpty() } ?: break
         
         println()
         

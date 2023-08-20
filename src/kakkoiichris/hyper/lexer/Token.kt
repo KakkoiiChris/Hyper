@@ -20,11 +20,12 @@ package kakkoiichris.hyper.lexer
  *
  * @author Christian Bryce Alexander
  */
-data class Token(val location: Location, val type: Type) {
+data class Token(val context: Context, val type: Type) {
     sealed interface Type {
         enum class Keyword : Type {
             LET,
             VAR,
+            MUT,
             DO,
             IF,
             ELSE,
@@ -39,21 +40,28 @@ data class Token(val location: Location, val type: Type) {
             BREAK,
             CONTINUE,
             RETURN,
-            NONE,
-            BOOL,
-            BYTE,
-            SHORT,
-            INT,
-            LONG,
-            FLOAT,
-            DOUBLE,
-            CHAR,
-            STRING,
-            ANY,
             IS,
             AS
         }
-        
+
+        enum class DataType : Type {
+            NONE,
+            BOOL,
+            U8,
+            U16,
+            U32,
+            U64,
+            I8,
+            I16,
+            I32,
+            I64,
+            F32,
+            F64,
+            CHAR,
+            STR,
+            ANY
+        }
+
         enum class Symbol(val value: String) : Type {
             EQUAL_SIGN("="),
             PLUS_EQUAL("+="),
@@ -107,18 +115,18 @@ data class Token(val location: Location, val type: Type) {
             LEFT_BRACE("{"),
             RIGHT_BRACE("}"),
             COMMA(","),
-            END_OF_LINE(";"),
+            SEMICOLON(";"),
             END_OF_FILE("0");
         }
-        
+
         data class Value(val value: Any) : Type
-        
+
         data class Identifier(val value: String) : Type
-        
+
         data class LeftTemplate(val value: String) : Type
-        
+
         data class MiddleTemplate(val value: String) : Type
-        
+
         data class RightTemplate(val value: String) : Type
     }
 }

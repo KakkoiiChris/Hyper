@@ -9,22 +9,16 @@
  *            SCRIPTING LANGUAGE              *
  *  Copyright (C) 2018, Christian Alexander   *
  **********************************************/
-package kakkoiichris.hyper.lexer
+package kakkoiichris.hyper.parser
 
 /**
  * Hyper
  * Copyright (C) 2022, KakkoiiChris
  *
- * File:    Location.kt
- * Created: Saturday, October 22, 2022, 12:27:04
+ * File:    DataType.kt
+ * Created: Sunday, November 27, 2022, 22:31:27
  *
  * @author Christian Bryce Alexander
  */
-data class Location(val name: String, val row: Int, val column: Int) {
-    companion object {
-        val none = Location("", 0, 0)
-    }
-    
-    override fun toString() =
-        if (name.isNotEmpty()) " @ $name.kb ($row, $column)" else ""
+interface DataType {
 }
