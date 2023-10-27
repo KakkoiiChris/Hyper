@@ -22,3 +22,9 @@ package kakkoiichris.hyper.parser
  */
 interface DataType {
 }
+
+object Inferred : DataType
+
+enum class Primitive:DataType{
+    VOID
+}

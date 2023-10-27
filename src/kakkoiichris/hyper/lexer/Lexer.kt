@@ -29,7 +29,7 @@ class Lexer(private val source: Source) : Iterator<Token> {
 
         val keywords = Keyword.values().associateBy { it.name.lowercase() }
 
-        val dataTypes = DataType.values().associateBy { it.name.lowercase() }
+        val dataTypes = Primitive.values().associateBy { it.name.lowercase() }
 
         val literals = listOf(true, false).associateBy { it.toString() }
     }
@@ -74,7 +74,7 @@ class Lexer(private val source: Source) : Iterator<Token> {
 
                 match('`')                 -> template()
 
-                else                       -> operator()
+                else                       -> symbol()
             }
         }
 
@@ -614,7 +614,7 @@ class Lexer(private val source: Source) : Iterator<Token> {
         return Token(context, type)
     }
 
-    private fun operator(): Token {
+    private fun symbol(): Token {
         val start = here()
 
         val type = when {
@@ -757,8 +757,6 @@ class Lexer(private val source: Source) : Iterator<Token> {
             skip('}') -> Symbol.RIGHT_BRACE
 
             skip(',') -> Symbol.COMMA
-
-            skip('@') -> Symbol.AT
 
             skip(':') -> when {
                 skip(':') -> Symbol.DOUBLE_COLON

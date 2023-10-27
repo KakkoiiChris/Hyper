@@ -43,6 +43,10 @@ sealed class Expr(val context: Context) {
     }
     
     class Name(context: Context, val value: String) : Expr(context) {
+        companion object {
+            val none = Name(Context.none, "")
+        }
+
         override fun <X> accept(visitor: Visitor<X>) =
             visitor.visitNameExpr(this)
     }

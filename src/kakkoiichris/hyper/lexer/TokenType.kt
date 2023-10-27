@@ -20,9 +20,10 @@ package kakkoiichris.hyper.lexer
  *
  * @author Christian Bryce Alexander
  */
-sealed interface Type
+sealed interface TokenType {
+}
 
-enum class Keyword : Type {
+enum class Keyword : TokenType {
     LET,
     VAR,
     MUT,
@@ -41,10 +42,11 @@ enum class Keyword : Type {
     CONTINUE,
     RETURN,
     IS,
-    AS
+    AS,
+    SELF
 }
 
-enum class DataType : Type {
+enum class Primitive : TokenType {
     NONE,
     BOOL,
     U8,
@@ -62,7 +64,7 @@ enum class DataType : Type {
     ANY
 }
 
-enum class Symbol(val value: String) : Type {
+enum class Symbol(val value: String) : TokenType {
     EQUAL_SIGN("="),
     PLUS_EQUAL("+="),
     DASH_EQUAL("-="),
@@ -106,7 +108,6 @@ enum class Symbol(val value: String) : Type {
     DOT("."),
     COLON(":"),
     DOUBLE_COLON("::"),
-    AT("@"),
     ARROW("->"),
     LEFT_PAREN("("),
     RIGHT_PAREN(")"),
@@ -116,15 +117,16 @@ enum class Symbol(val value: String) : Type {
     RIGHT_BRACE("}"),
     COMMA(","),
     SEMICOLON(";"),
+    AT("@"),
     END_OF_FILE("0");
 }
 
-data class Value(val value: Any) : Type
+data class Value(val value: Any) : TokenType
 
-data class Identifier(val value: String) : Type
+data class Identifier(val value: String) : TokenType
 
-data class LeftTemplate(val value: String) : Type
+data class LeftTemplate(val value: String) : TokenType
 
-data class MiddleTemplate(val value: String) : Type
+data class MiddleTemplate(val value: String) : TokenType
 
-data class RightTemplate(val value: String) : Type
+data class RightTemplate(val value: String) : TokenType

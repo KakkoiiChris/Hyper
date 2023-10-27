@@ -20,4 +20,4 @@ package kakkoiichris.hyper.lexer
  *
  * @author Christian Bryce Alexander
  */
-data class Token(val context: Context, val type: Type)
+data class Token(val context: Context, val type: TokenType)
