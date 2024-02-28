@@ -41,6 +41,7 @@ enum class Keyword : TokenType {
     BREAK,
     CONTINUE,
     RETURN,
+    IN,
     IS,
     AS,
     SELF
@@ -119,6 +120,23 @@ enum class Symbol(val value: String) : TokenType {
     SEMICOLON(";"),
     AT("@"),
     END_OF_FILE("0");
+
+    companion object {
+        val compoundAssignOperators = arrayOf(
+            EQUAL_SIGN,
+            PLUS_EQUAL,
+            DASH_EQUAL,
+            STAR_EQUAL,
+            SLASH_EQUAL,
+            PERCENT_EQUAL,
+            AMPERSAND_EQUAL,
+            CARET_EQUAL,
+            PIPE_EQUAL,
+            DOUBLE_LESS_EQUAL,
+            DOUBLE_GREATER_EQUAL,
+            TRIPLE_GREATER_EQUAL
+        )
+    }
 }
 
 data class Value(val value: Any) : TokenType

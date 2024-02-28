@@ -21,10 +21,29 @@ package kakkoiichris.hyper.parser
  * @author Christian Bryce Alexander
  */
 interface DataType {
-}
+    object Inferred : DataType
 
-object Inferred : DataType
+    enum class Primitive : DataType {
+        VOID,
+        BOOL,
+        U8,
+        U16,
+        U32,
+        U64,
+        I8,
+        I16,
+        I32,
+        I64,
+        CHAR
+    }
 
-enum class Primitive:DataType{
-    VOID
+    data class Range(val subType: DataType) : DataType
+
+    data class Array(val subType: DataType, val initSize: Expr) : DataType
+
+    data class Struct(val name: Expr.Name) : DataType
+
+    data class Fun(val paramTypes: List<DataType>, val returnType: DataType) : DataType
+
+    data class Vararg(val subType: DataType) : DataType
 }
