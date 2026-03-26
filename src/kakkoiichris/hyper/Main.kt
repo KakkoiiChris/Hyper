@@ -11,12 +11,14 @@
  **********************************************/
 package kakkoiichris.hyper
 
+import kakkoiichris.hyper.lexer.Lexer
+import kakkoiichris.hyper.parser.Parser
 import kakkoiichris.hyper.util.Source
 import java.io.File
 
 /**
  * Hyper
- 
+
  * Copyright (C) 2022, KakkoiiChris
  *
  * File:    Main.kt
@@ -26,9 +28,9 @@ import java.io.File
  */
 fun main(args: Array<String>) = when (args.size) {
     0    -> repl()
-    
+
     1    -> file(args.first())
-    
+
     else -> error("Usage: hyper [path]")
 }
 
@@ -45,29 +47,39 @@ private const val HEADER = """
 
 private fun repl() {
     println("${HEADER.trimIndent()}\n")
-    
+
     while (true) {
         print("> ")
-        
+
         val text = readln().takeIf { it.isNotEmpty() } ?: break
-        
+
         println()
-        
+
         exec("REPL", text)
     }
 }
 
 private fun file(path: String) {
     val file = File(path)
-    
+
     val name = file.nameWithoutExtension
     val text = file.readText()
-    
+
     exec(name, text)
 }
 
 private fun exec(name: String, text: String) {
     val source = Source(name, text)
-    
+
     println("$source\n")
+
+    val lexer = Lexer(source)
+
+    val parser = Parser(lexer)
+
+    val program = parser.parse()
+
+    for (expr in program) {
+        println(expr)
+    }
 }

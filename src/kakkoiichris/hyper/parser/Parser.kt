@@ -51,13 +51,7 @@ class Parser(private val lexer: Lexer) {
     private inline fun <reified T : TokenType> match(): Boolean {
         val type = peek().type
 
-        if (type is T) {
-            step()
-
-            return true
-        }
-
-        return false
+        return type is T
     }
 
     private fun matchAny(vararg types: TokenType): Boolean {
@@ -732,7 +726,7 @@ class Parser(private val lexer: Lexer) {
 
             val target = Expr.GetMember(name.context, expr, name)
 
-            var arg = subExpr().toArg()
+            val arg = subExpr().toArg()
 
             expr = Expr.Invoke(name.context..<arg.context, target, listOf(arg))
         }
