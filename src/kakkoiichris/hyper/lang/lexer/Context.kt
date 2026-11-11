@@ -9,7 +9,9 @@
  *       𝓟𝓻𝓸𝓰𝓻𝓪𝓶𝓶𝓲𝓷𝓰 𝓛𝓪𝓷𝓰𝓾𝓪𝓰𝓮
  *             𝓔𝓼𝓽𝓭. 2018
  */
-package kakkoiichris.hyper.lexer
+package kakkoiichris.hyper.lang.lexer
+
+import kakkoiichris.hyper.lang.util.Source
 
 /**
  * Hyper > Context.kt
@@ -19,32 +21,30 @@ package kakkoiichris.hyper.lexer
  * @author Christian Bryce Alexander
  */
 data class Context(
-    val name: String,
+    val source: Source,
     val row: Int,
     val column: Int,
-    val line: String,
-    val region: IntRange
+    val start: Int,
+    val length: Int
 ) {
-    companion object {
-        val none = Context(
-            "",
-            0,
-            0,
-            "",
-            0..0
-        )
-    }
+    /**
+     * @param lexeme The end [Context] to encompass
+     *
+     * @return A new [Context] instance spanning from this token to the other token
+     */
+    fun withLexeme(lexeme: String) =
+        Context(source, row, column, start, lexeme.length)
 
-    operator fun rangeTo(end: Context) =
-        Context(name, row, column, line, region.first..end.region.last)
+    fun withEnd(end: Int) =
+        Context(source, row, column, start, end - start)
 
-    @OptIn(ExperimentalStdlibApi::class)
-    operator fun rangeUntil(end: Context) =
-        Context(name, row, column, line, region.first..<end.region.last)
-
-    fun withRegion(region: IntRange) =
-        Context(name, row, column, line, region)
+    fun getCodeStamp() =
+        "${source.name} (Row $row, Column $column)"
 
     override fun toString() =
-        if (name.isNotEmpty()) " @ $name.kb ($row, $column)" else ""
+        if (source.name.isNotEmpty()) " @ ${source.name}.hyp ($row, $column)" else ""
+
+    companion object {
+        fun none() = Context(Source("", ""), 0, 0, 0, 0)
+    }
 }

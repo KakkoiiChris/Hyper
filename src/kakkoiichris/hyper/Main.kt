@@ -11,9 +11,9 @@
  */
 package kakkoiichris.hyper
 
-import kakkoiichris.hyper.lexer.Lexer
-import kakkoiichris.hyper.parser.Parser
-import kakkoiichris.hyper.util.Source
+import kakkoiichris.hyper.lang.lexer.Lexer
+import kakkoiichris.hyper.lang.parser.Parser
+import kakkoiichris.hyper.lang.util.Source
 import java.io.File
 
 /**

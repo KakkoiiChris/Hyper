@@ -9,10 +9,11 @@
  *       𝓟𝓻𝓸𝓰𝓻𝓪𝓶𝓶𝓲𝓷𝓰 𝓛𝓪𝓷𝓰𝓾𝓪𝓰𝓮
  *             𝓔𝓼𝓽𝓭. 2018
  */
-package kakkoiichris.hyper.lexer
+package kakkoiichris.hyper.lang.lexer
 
-import kakkoiichris.hyper.util.HyperError
-import kakkoiichris.hyper.util.Source
+import kakkoiichris.hyper.lang.util.HyperError
+import kakkoiichris.hyper.lang.util.Source
+import kakkoiichris.hyper.lang.util.hyperError
 
 /**
  * Hyper > Lexer.kt
@@ -25,14 +26,12 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
     companion object {
         const val NUL = '\u0000'
 
-        val keywords = Keyword.values().associateBy { it.name.lowercase() }
+        val keywords = Keyword.entries.associateBy { it.name.lowercase() }
 
-        val dataTypes = Primitive.values().associateBy { it.name.lowercase() }
+        val dataTypes = Primitive.entries.associateBy { it.name.lowercase() }
 
         val literals = listOf(true, false).associateBy { it.toString() }
     }
-
-    private val lines = source.text.lines()
 
     private var pos = 0
     private var row = 1
@@ -80,7 +79,7 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
     }
 
     private fun here() =
-        Context(source.name, row, col, lines[row - 1], col..col)
+        Context(source, row, col, pos, 1)
 
     private fun peek(offset: Int = 0) =
         if (pos + offset in source.text.indices)
@@ -128,16 +127,6 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
         return false
     }
 
-    private fun skip(offset: Int = 0, predicate: (Char) -> Boolean): Boolean {
-        if (match(offset, predicate)) {
-            step()
-
-            return true
-        }
-
-        return false
-    }
-
     private fun skip(string: String, ignoreCase: Boolean = false): Boolean {
         if (match(string, ignoreCase)) {
             step(string.length)
@@ -150,13 +139,13 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
 
     private fun mustSkip(char: Char, offset: Int = 0) {
         if (!skip(char, offset)) {
-            HyperError.forLexer("Character '${peek()}' is invalid; expected $char!", here())
+            hyperError("Character '${peek()}' is invalid; expected $char!", here())
         }
     }
 
     private fun mustSkip(string: String) {
         if (!skip(string)) {
-            HyperError.forLexer("Sequence '${look(string.length)}' is invalid; expected $string!", here())
+            hyperError("Sequence '${look(string.length)}' is invalid; expected $string!", here())
         }
     }
 
@@ -411,7 +400,7 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
             }
         }
 
-        return result.toIntOrNull(16)?.toChar() ?: HyperError.forLexer("Unicode value '$result' is invalid!", loc)
+        return result.toIntOrNull(16)?.toChar() ?: hyperError("Unicode value '$result' is invalid!", loc)
     }
 
     private fun charEscape(): Char {
@@ -450,7 +439,7 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
                 Character.codePointOf(name).toChar()
             }
 
-            else       -> HyperError.forLexer("Character escape '\\${peek()}' is invalid!", here())
+            else       -> hyperError("Character escape '\\${peek()}' is invalid!", here())
         }
     }
 
@@ -518,7 +507,7 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
                 Character.codePointOf(name).toChar()
             }
 
-            else       -> HyperError.forLexer("Character escape '\\${peek()}' is invalid!", here())
+            else       -> hyperError("Character escape '\\${peek()}' is invalid!", here())
         }
     }
 
@@ -532,11 +521,11 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
         val result = buildString {
             while (!match('"')) {
                 if (match(NUL)) {
-                    HyperError.forLexer("Reached end of file inside of a string!", start.withRegion(col..col + 1))
+                    hyperError("Reached end of file inside of a string!", start.withRegion(col..col + 1))
                 }
 
                 if (match { it.isEndOfLine() }) {
-                    HyperError.forLexer("String cannot be multiline!", start.withRegion(col..col + 1))
+                    hyperError("String cannot be multiline!", start.withRegion(col..col + 1))
                 }
 
                 if (match('\\')) {
@@ -577,11 +566,11 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
         val result = buildString {
             while (!match('"')) {
                 if (match(NUL)) {
-                    HyperError.forLexer("Reached end of file inside of a string!", start.withRegion(col..col + 1))
+                    hyperError("Reached end of file inside of a string!", start.withRegion(col..col + 1))
                 }
 
                 if (match { it.isEndOfLine() }) {
-                    HyperError.forLexer("String cannot be multiline!", start.withRegion(col..col + 1))
+                    hyperError("String cannot be multiline!", start.withRegion(col..col + 1))
                 }
 
                 if (match('\\')) {
@@ -764,7 +753,7 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
 
             skip(';') -> Symbol.SEMICOLON
 
-            else      -> HyperError.forLexer("Character '${peek()}' is invalid!", here())
+            else      -> hyperError("Character '${peek()}' is invalid!", here())
         }
 
         val context = start..<here()

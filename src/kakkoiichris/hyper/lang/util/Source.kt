@@ -9,7 +9,9 @@
  *       𝓟𝓻𝓸𝓰𝓻𝓪𝓶𝓶𝓲𝓷𝓰 𝓛𝓪𝓷𝓰𝓾𝓪𝓰𝓮
  *             𝓔𝓼𝓽𝓭. 2018
  */
-package kakkoiichris.hyper.util
+package kakkoiichris.hyper.lang.util
+
+import java.io.File
 
 /**
  * Hyper > Source.kt
@@ -19,16 +21,22 @@ package kakkoiichris.hyper.util
  * @author Christian Bryce Alexander
  */
 data class Source(val name: String, val text: String) {
+    fun getLine(row: Int) =
+        text.lines()[row - 1]
+
     companion object {
-        fun readLocal(path: String): Source {
+        fun of(file: File) =
+            Source(file.name, file.readText())
+
+        fun ofResource(path: String): Source {
             val name = path.substring(path.lastIndexOf('/') + 1, path.indexOf('.'))
 
             val text = Source::class
-                           .java
-                           .getResourceAsStream(path)
-                           ?.bufferedReader()
-                           ?.readText()
-                       ?: error("Could not read")
+                .java
+                .getResourceAsStream(path)
+                ?.bufferedReader()
+                ?.readText()
+                ?: error("Could not read")
 
             return Source(name, text)
         }

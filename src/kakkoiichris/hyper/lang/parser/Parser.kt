@@ -9,12 +9,12 @@
  *       𝓟𝓻𝓸𝓰𝓻𝓪𝓶𝓶𝓲𝓷𝓰 𝓛𝓪𝓷𝓰𝓾𝓪𝓰𝓮
  *             𝓔𝓼𝓽𝓭. 2018
  */
-package kakkoiichris.hyper.parser
+package kakkoiichris.hyper.lang.parser
 
-import kakkoiichris.hyper.lexer.*
-import kakkoiichris.hyper.lexer.Keyword.*
-import kakkoiichris.hyper.lexer.Symbol.*
-import kakkoiichris.hyper.util.HyperError
+import kakkoiichris.hyper.lang.lexer.*
+import kakkoiichris.hyper.lang.lexer.Keyword.*
+import kakkoiichris.hyper.lang.lexer.Symbol.*
+import kakkoiichris.hyper.lang.util.HyperError
 
 /**
  * Hyper > Parser.kt

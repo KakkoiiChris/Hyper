@@ -9,7 +9,7 @@
  *       𝓟𝓻𝓸𝓰𝓻𝓪𝓶𝓶𝓲𝓷𝓰 𝓛𝓪𝓷𝓰𝓾𝓪𝓰𝓮
  *             𝓔𝓼𝓽𝓭. 2018
  */
-package kakkoiichris.hyper.lexer
+package kakkoiichris.hyper.lang.lexer
 
 /**
  * Hyper > TokenType.kt
@@ -18,8 +18,7 @@ package kakkoiichris.hyper.lexer
  *
  * @author Christian Bryce Alexander
  */
-sealed interface TokenType {
-}
+sealed interface TokenType
 
 enum class Keyword : TokenType {
     LET,

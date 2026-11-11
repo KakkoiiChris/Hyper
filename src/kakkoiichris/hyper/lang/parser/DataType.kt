@@ -9,7 +9,7 @@
  *       𝓟𝓻𝓸𝓰𝓻𝓪𝓶𝓶𝓲𝓷𝓰 𝓛𝓪𝓷𝓰𝓾𝓪𝓰𝓮
  *             𝓔𝓼𝓽𝓭. 2018
  */
-package kakkoiichris.hyper.parser
+package kakkoiichris.hyper.lang.parser
 
 /**
  * Hyper > DataType.kt

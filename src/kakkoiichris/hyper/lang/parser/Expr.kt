@@ -9,11 +9,11 @@
  *       𝓟𝓻𝓸𝓰𝓻𝓪𝓶𝓶𝓲𝓷𝓰 𝓛𝓪𝓷𝓰𝓾𝓪𝓰𝓮
  *             𝓔𝓼𝓽𝓭. 2018
  */
-package kakkoiichris.hyper.parser
+package kakkoiichris.hyper.lang.parser
 
-import kakkoiichris.hyper.lexer.Context
-import kakkoiichris.hyper.lexer.Symbol
-import kakkoiichris.hyper.lexer.TokenType
+import kakkoiichris.hyper.lang.lexer.Context
+import kakkoiichris.hyper.lang.lexer.Symbol
+import kakkoiichris.hyper.lang.lexer.TokenType
 
 /**
  * Hyper > Expr.kt
