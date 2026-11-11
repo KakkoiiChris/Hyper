@@ -1,14 +1,14 @@
-/**********************************************
- * ______  __                                 *
- * ___  / / /_____  __________ _____ ________ *
- * __  /_/ / __  / / /___  __ \_  _ \__  ___/ *
- * _  __  /  _  /_/ / __  /_/ //  __/_  /     *
- * /_/ /_/   _\__, /  _  .___/ \___/ /_/      *
- *           /____/   /_/                     *
- *                                            *
- *            SCRIPTING LANGUAGE              *
- *  Copyright (C) 2018, Christian Alexander   *
- **********************************************/
+/* 𝓚𝓪𝓴𝓴𝓸𝓲𝓲𝓒𝓱𝓻𝓲𝓼 𝓟𝓻𝓸𝓾𝓭𝓵𝔂 𝓟𝓻𝓮𝓼𝓮𝓷𝓽𝓼 𝓽𝓱𝓮
+ *  ▄▄▄  ▄▄▄
+ * █▀██  ██
+ *   ██████   ██ ██  ████▄  ▄█▀█▄  ████▄
+ *   ██  ██   ██▄██  ██ ██  ██▄█▀  ██
+ * ▀██▀  ▀██▄▄▄▀██▀▄▄████▀▄▄▀█▄▄▄▄▄█▀
+ *              ██   ██
+ *            ▀▀▀    ▀
+ *       𝓟𝓻𝓸𝓰𝓻𝓪𝓶𝓶𝓲𝓷𝓰 𝓛𝓪𝓷𝓰𝓾𝓪𝓰𝓮
+ *             𝓔𝓼𝓽𝓭. 2018
+ */
 package kakkoiichris.hyper.parser
 
 import kakkoiichris.hyper.lexer.Context
@@ -16,11 +16,9 @@ import kakkoiichris.hyper.lexer.Symbol
 import kakkoiichris.hyper.lexer.TokenType
 
 /**
- * Hyper
- * Copyright (C) 2022, KakkoiiChris
- *
- * File:    Expr.kt
- * Created: Sunday, November 27, 2022, 21:54:40
+ * Hyper > Expr.kt
+ * Copyright (C) 2018, KakkoiiChris
+ * Sunday, November 27, 2022, 21:54:40
  *
  * @author Christian Bryce Alexander
  */

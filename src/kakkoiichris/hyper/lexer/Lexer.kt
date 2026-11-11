@@ -1,29 +1,27 @@
-/**********************************************
- * ______  __                                 *
- * ___  / / /_____  __________ _____ ________ *
- * __  /_/ / __  / / /___  __ \_  _ \__  ___/ *
- * _  __  /  _  /_/ / __  /_/ //  __/_  /     *
- * /_/ /_/   _\__, /  _  .___/ \___/ /_/      *
- *           /____/   /_/                     *
- *                                            *
- *            SCRIPTING LANGUAGE              *
- *  Copyright (C) 2018, Christian Alexander   *
- **********************************************/
+/* 𝓚𝓪𝓴𝓴𝓸𝓲𝓲𝓒𝓱𝓻𝓲𝓼 𝓟𝓻𝓸𝓾𝓭𝓵𝔂 𝓟𝓻𝓮𝓼𝓮𝓷𝓽𝓼 𝓽𝓱𝓮
+ *  ▄▄▄  ▄▄▄
+ * █▀██  ██
+ *   ██████   ██ ██  ████▄  ▄█▀█▄  ████▄
+ *   ██  ██   ██▄██  ██ ██  ██▄█▀  ██
+ * ▀██▀  ▀██▄▄▄▀██▀▄▄████▀▄▄▀█▄▄▄▄▄█▀
+ *              ██   ██
+ *            ▀▀▀    ▀
+ *       𝓟𝓻𝓸𝓰𝓻𝓪𝓶𝓶𝓲𝓷𝓰 𝓛𝓪𝓷𝓰𝓾𝓪𝓰𝓮
+ *             𝓔𝓼𝓽𝓭. 2018
+ */
 package kakkoiichris.hyper.lexer
 
 import kakkoiichris.hyper.util.HyperError
 import kakkoiichris.hyper.util.Source
 
 /**
- * Hyper
- * Copyright (C) 2022, KakkoiiChris
- *
- * File:    Lexer.kt
- * Created: Saturday, October 22, 2022, 13:35:07
+ * Hyper > Lexer.kt
+ * Copyright (C) 2018, KakkoiiChris
+ * Saturday, October 22, 2022, 13:35:07
  *
  * @author Christian Bryce Alexander
  */
-class Lexer(private val source: Source) : Iterator<Token> {
+class Lexer(private val source: Source) : Iterator<Token<*>> {
     companion object {
         const val NUL = '\u0000'
 
@@ -43,7 +41,7 @@ class Lexer(private val source: Source) : Iterator<Token> {
     override fun hasNext() =
         pos <= source.text.length + 1
 
-    override fun next(): Token {
+    override fun next(): Token<*> {
         while (!atEndOfFile()) {
             if (match { it.isWhitespace() }) {
                 skipWhitespace()
@@ -211,7 +209,7 @@ class Lexer(private val source: Source) : Iterator<Token> {
     private fun Char.isBinary() =
         this in "01_"
 
-    private fun binaryNumber(): Token {
+    private fun binaryNumber(): Token<Value> {
         val start = here()
 
         step(2)
@@ -233,10 +231,10 @@ class Lexer(private val source: Source) : Iterator<Token> {
             skip("u32", true) -> result.toUIntOrNull(2) ?: TODO()
             skip("u64", true) -> result.toULongOrNull(2) ?: TODO()
             skip("u", true)   -> result.toUIntOrNull(2) ?: TODO()
-            skip("i8", true)  -> result.toUByteOrNull(2) ?: TODO()
-            skip("i16", true) -> result.toUShortOrNull(2) ?: TODO()
-            skip("i32", true) -> result.toUIntOrNull(2) ?: TODO()
-            skip("i64", true) -> result.toULongOrNull(2) ?: TODO()
+            skip("i8", true)  -> result.toByteOrNull(2) ?: TODO()
+            skip("i16", true) -> result.toShortOrNull(2) ?: TODO()
+            skip("i32", true) -> result.toIntOrNull(2) ?: TODO()
+            skip("i64", true) -> result.toLongOrNull(2) ?: TODO()
             else              -> result.toIntOrNull(2) ?: TODO()
         }
 
@@ -253,7 +251,7 @@ class Lexer(private val source: Source) : Iterator<Token> {
     private fun Char.isHexadecimal() =
         isDigit() || lowercaseChar() in 'a'..'f' || this == '_'
 
-    private fun hexadecimalNumber(): Token {
+    private fun hexadecimalNumber(): Token<Value> {
         val start = here()
 
         step(2)
@@ -298,7 +296,7 @@ class Lexer(private val source: Source) : Iterator<Token> {
     private fun Char.isFloatStart() =
         lowercaseChar() in ".e"
 
-    private fun decimalNumber(): Token {
+    private fun decimalNumber(): Token<Value> {
         val start = here()
 
         if (!match { it.isDecimalStart() }) TODO()
@@ -319,10 +317,10 @@ class Lexer(private val source: Source) : Iterator<Token> {
                 skip("u32", true) -> result.toUIntOrNull() ?: TODO()
                 skip("u64", true) -> result.toULongOrNull() ?: TODO()
                 skip("u", true)   -> result.toUIntOrNull() ?: TODO()
-                skip("i8", true)  -> result.toUByteOrNull() ?: TODO()
-                skip("i16", true) -> result.toUShortOrNull() ?: TODO()
-                skip("i32", true) -> result.toUIntOrNull() ?: TODO()
-                skip("i64", true) -> result.toULongOrNull() ?: TODO()
+                skip("i8", true)  -> result.toByteOrNull() ?: TODO()
+                skip("i16", true) -> result.toShortOrNull() ?: TODO()
+                skip("i32", true) -> result.toIntOrNull() ?: TODO()
+                skip("i64", true) -> result.toLongOrNull() ?: TODO()
                 else              -> result.toIntOrNull() ?: TODO()
             }
 
@@ -371,7 +369,7 @@ class Lexer(private val source: Source) : Iterator<Token> {
         return Token(context, type)
     }
 
-    private fun word(): Token {
+    private fun word(): Token<*> {
         val start = here()
 
         val result = buildString {
@@ -456,7 +454,7 @@ class Lexer(private val source: Source) : Iterator<Token> {
         }
     }
 
-    private fun char(): Token {
+    private fun char(): Token<Value> {
         val start = here()
 
         mustSkip('\'')
@@ -524,7 +522,7 @@ class Lexer(private val source: Source) : Iterator<Token> {
         }
     }
 
-    private fun string(): Token {
+    private fun string(): Token<*> {
         val start = here()
 
         mustSkip('"')
@@ -569,7 +567,7 @@ class Lexer(private val source: Source) : Iterator<Token> {
         return Token(context, type)
     }
 
-    private fun template(): Token {
+    private fun template(): Token<*> {
         val start = here()
 
         mustSkip('`')
@@ -614,7 +612,7 @@ class Lexer(private val source: Source) : Iterator<Token> {
         return Token(context, type)
     }
 
-    private fun symbol(): Token {
+    private fun symbol(): Token<Symbol> {
         val start = here()
 
         val type = when {

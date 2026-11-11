@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ExportableFileTemplateSettings">
     <includes_templates>
-      <template name="FileHeader.kt" file-name="FileHeader.kt" reformat="true" live-template-enabled="false" />
-      <template name="HyperHeader.kt" file-name="HyperHeader.kt" reformat="true" live-template-enabled="false" />
+      <template name="HyperClassHeader.kt" file-name="HyperClassHeader.kt" reformat="true" live-template-enabled="false" />
+      <template name="HyperFileHeader.kt" file-name="HyperFileHeader.kt" reformat="true" live-template-enabled="false" />
     </includes_templates>
   </component>
 </project>

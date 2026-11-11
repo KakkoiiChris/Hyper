@@ -1,23 +1,21 @@
-/**********************************************
- * ______  __                                 *
- * ___  / / /_____  __________ _____ ________ *
- * __  /_/ / __  / / /___  __ \_  _ \__  ___/ *
- * _  __  /  _  /_/ / __  /_/ //  __/_  /     *
- * /_/ /_/   _\__, /  _  .___/ \___/ /_/      *
- *           /____/   /_/                     *
- *                                            *
- *            SCRIPTING LANGUAGE              *
- *  Copyright (C) 2018, Christian Alexander   *
- **********************************************/
+/* 𝓚𝓪𝓴𝓴𝓸𝓲𝓲𝓒𝓱𝓻𝓲𝓼 𝓟𝓻𝓸𝓾𝓭𝓵𝔂 𝓟𝓻𝓮𝓼𝓮𝓷𝓽𝓼 𝓽𝓱𝓮
+ *  ▄▄▄  ▄▄▄
+ * █▀██  ██
+ *   ██████   ██ ██  ████▄  ▄█▀█▄  ████▄
+ *   ██  ██   ██▄██  ██ ██  ██▄█▀  ██
+ * ▀██▀  ▀██▄▄▄▀██▀▄▄████▀▄▄▀█▄▄▄▄▄█▀
+ *              ██   ██
+ *            ▀▀▀    ▀
+ *       𝓟𝓻𝓸𝓰𝓻𝓪𝓶𝓶𝓲𝓷𝓰 𝓛𝓪𝓷𝓰𝓾𝓪𝓰𝓮
+ *             𝓔𝓼𝓽𝓭. 2018
+ */
 package kakkoiichris.hyper.lexer
 
 /**
- * Hyper
- * Copyright (C) 2022, KakkoiiChris
- *
- * File:    Token.kt
- * Created: Saturday, October 22, 2022, 12:25:38
+ * Hyper > Token.kt
+ * Copyright (C) 2018, KakkoiiChris
+ * Saturday, October 22, 2022, 12:25:38
  *
  * @author Christian Bryce Alexander
  */
-data class Token(val context: Context, val type: TokenType)
+data class Token<T : TokenType>(val context: Context, val type: T)

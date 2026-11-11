@@ -1,6 +1,6 @@
-#parse("HyperHeader.kt")
+#parse("HyperFileHeader.kt")
 #if (${PACKAGE_NAME} && ${PACKAGE_NAME} != "")
 package ${PACKAGE_NAME}
 #end
 
-#parse("FileHeader.kt")
+#parse("HyperClassHeader.kt")
