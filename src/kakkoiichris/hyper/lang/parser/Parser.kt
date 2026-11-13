@@ -15,6 +15,7 @@ import kakkoiichris.hyper.lang.lexer.*
 import kakkoiichris.hyper.lang.lexer.Keyword.*
 import kakkoiichris.hyper.lang.lexer.Symbol.*
 import kakkoiichris.hyper.lang.util.HyperError
+import kakkoiichris.hyper.lang.util.hyperError
 
 /**
  * Hyper > Parser.kt
@@ -108,13 +109,13 @@ class Parser(private val lexer: Lexer) {
 
     private fun mustSkip(type: TokenType) {
         if (!skip(type)) {
-            HyperError.forParser("Expected type $type; got ${peek().type} instead!", token.context)
+            hyperError("Expected type $type; got ${peek().type} instead!", token.context)
         }
     }
 
     private inline fun <reified T : TokenType> mustSkip() {
         if (!skip<T>()) {
-            HyperError.forParser("Expected type ${T::class.simpleName}; got ${peek().type} instead!", token.context)
+            hyperError("Expected type ${T::class.simpleName}; got ${peek().type} instead!", token.context)
         }
     }
 
@@ -141,7 +142,7 @@ class Parser(private val lexer: Lexer) {
         }
 
     private fun blockStmt(): Stmt.Block {
-        val start = here()
+        val context = here()
 
         val stmts = mutableListOf<Stmt>()
 
@@ -153,13 +154,11 @@ class Parser(private val lexer: Lexer) {
 
         mustSkip(RIGHT_BRACE)
 
-        val context = start..<here()
-
         return Stmt.Block(context, stmts)
     }
 
     private fun declareStmt(): Stmt.Declare {
-        val start = here()
+        val context = here()
 
         val constant = skip(LET)
 
@@ -171,7 +170,7 @@ class Parser(private val lexer: Lexer) {
 
         val name = nameExpr()
 
-        var type = Expr.Type(Context.none, DataType.Inferred)
+        var type = Expr.Type(Context.none(), DataType.Inferred)
 
         val typed = skip(COLON)
 
@@ -179,7 +178,7 @@ class Parser(private val lexer: Lexer) {
             type = typeExpr()
         }
 
-        var expr: Expr = Expr.Empty(Context.none)
+        var expr: Expr = Expr.Empty(Context.none())
 
         val assigned = skip(EQUAL_SIGN)
 
@@ -193,13 +192,11 @@ class Parser(private val lexer: Lexer) {
 
         mustSkip(SEMICOLON)
 
-        val context = start..<here()
-
         return Stmt.Declare(context, constant, mutable, name, type, expr)
     }
 
     private fun ifStmt(): Stmt.If {
-        val start = here()
+        val context = here()
 
         mustSkip(IF)
 
@@ -207,7 +204,7 @@ class Parser(private val lexer: Lexer) {
 
         val yes = blockStmt()
 
-        var no: Stmt = Stmt.Empty(Context.none)
+        var no: Stmt = Stmt.Empty(Context.none())
 
         if (skip(ELSE)) {
             no = if (match(IF)) {
@@ -218,8 +215,6 @@ class Parser(private val lexer: Lexer) {
             }
         }
 
-        val context = start..<here()
-
         return Stmt.If(context, condition, yes, no)
     }
 
@@ -228,19 +223,17 @@ class Parser(private val lexer: Lexer) {
     }
 
     private fun loopStmt(): Stmt.Loop {
-        val start = here()
+        val context = here()
 
         mustSkip(LOOP)
 
         val block = blockStmt()
 
-        val context = start..<here()
-
         return Stmt.Loop(context, block)
     }
 
     private fun whileStmt(): Stmt.While {
-        val start = here()
+        val context = here()
 
         mustSkip(WHILE)
 
@@ -248,13 +241,11 @@ class Parser(private val lexer: Lexer) {
 
         val block = blockStmt()
 
-        val context = start..<here()
-
         return Stmt.While(context, condition, block)
     }
 
     private fun untilStmt(): Stmt.Until {
-        val start = here()
+        val context = here()
 
         mustSkip(UNTIL)
 
@@ -262,13 +253,11 @@ class Parser(private val lexer: Lexer) {
 
         val block = blockStmt()
 
-        val context = start..<here()
-
         return Stmt.Until(context, condition, block)
     }
 
     private fun forStmt(): Stmt.For {
-        val start = here()
+        val context = here()
 
         mustSkip(FOR)
 
@@ -280,13 +269,11 @@ class Parser(private val lexer: Lexer) {
 
         val block = blockStmt()
 
-        val context = start..<here()
-
         return Stmt.For(context, name, iterable, block)
     }
 
     private fun defStmt(): Stmt.Def {
-        val start = here()
+        val context = here()
 
         mustSkip(DEF)
 
@@ -309,13 +296,11 @@ class Parser(private val lexer: Lexer) {
             funs += funStmt()
         }
 
-        val context = start..<here()
-
         return Stmt.Def(context, `for`, trait, target, funs)
     }
 
     private fun funStmt(): Stmt.Fun {
-        val start = here()
+        val context = here()
 
         mustSkip(FUN)
 
@@ -342,13 +327,11 @@ class Parser(private val lexer: Lexer) {
 
             val argType = typeExpr()
 
-            val argContext = argName.context..<argType.context
-
-            args += Stmt.Arg(argContext, argName, argType)
+            args += Stmt.Arg(argName.context, argName, argType)
         }
         while (skip(COMMA))
 
-        var type = Expr.Type(Context.none, DataType.Primitive.VOID)
+        var type = Expr.Type(Context.none(), DataType.Primitive.VOID)
 
         if (skip(COLON)) {
             type = typeExpr()
@@ -366,11 +349,9 @@ class Parser(private val lexer: Lexer) {
             ARROW      -> {
                 val expr = expr()
 
-                val context = expr.context..<here()
-
                 mustSkip(SEMICOLON)
 
-                Stmt.Return(context, expr)
+                Stmt.Return(expr.context, expr)
             }
 
             LEFT_BRACE -> blockStmt()
@@ -378,13 +359,11 @@ class Parser(private val lexer: Lexer) {
             else       -> TODO("FUN BODY")
         }
 
-        val context = start..<here()
-
         return Stmt.Fun(context, name, self, args, type, body)
     }
 
     private fun structStmt(): Stmt.Struct {
-        val start = here()
+        val context = here()
 
         mustSkip(STRUCT)
 
@@ -403,13 +382,9 @@ class Parser(private val lexer: Lexer) {
 
             val argType = typeExpr()
 
-            val argContext = argName.context..<argType.context
-
-            args += Stmt.Arg(argContext, argName, argType)
+            args += Stmt.Arg(argName.context, argName, argType)
         }
         while (skip(COMMA))
-
-        val context = start..<here()
 
         mustSkip(RIGHT_BRACE)
 
@@ -417,7 +392,7 @@ class Parser(private val lexer: Lexer) {
     }
 
     private fun enumStmt(): Stmt.Enum {
-        val start = here()
+        val context = here()
 
         mustSkip(ENUM)
 
@@ -443,7 +418,7 @@ class Parser(private val lexer: Lexer) {
 
                     mustSkip(RIGHT_PAREN)
 
-                    Stmt.Enum.Variant.Typed(variantName.context..<types.last().context, variantName, types)
+                    Stmt.Enum.Variant.Typed(variantName.context, variantName, types)
                 }
 
                 else             -> Stmt.Enum.Variant.Single(name.context, name)
@@ -451,15 +426,13 @@ class Parser(private val lexer: Lexer) {
         }
         while (skip(COMMA))
 
-        val context = start..<here()
-
         mustSkip(RIGHT_BRACE)
 
         return Stmt.Enum(context, name, variants)
     }
 
     private fun breakStmt(): Stmt {
-        val start = here()
+        val context = here()
 
         mustSkip(BREAK)
 
@@ -467,21 +440,17 @@ class Parser(private val lexer: Lexer) {
 
         val expr = if (!match(SEMICOLON)) expr() else null
 
-        val context = start..<here()
-
         mustSkip(SEMICOLON)
 
         return Stmt.Break(context, label, expr)
     }
 
     private fun continueStmt(): Stmt.Continue {
-        val start = here()
+        val context = here()
 
         mustSkip(CONTINUE)
 
         val label = if (skip(COLON)) nameExpr() else null
-
-        val context = start..<here()
 
         mustSkip(SEMICOLON)
 
@@ -489,13 +458,11 @@ class Parser(private val lexer: Lexer) {
     }
 
     private fun returnStmt(): Stmt.Return {
-        val start = here()
+        val context = here()
 
         mustSkip(RETURN)
 
         val expr = if (!match(SEMICOLON)) expr() else null
-
-        val context = start..<here()
 
         mustSkip(SEMICOLON)
 
@@ -505,11 +472,9 @@ class Parser(private val lexer: Lexer) {
     private fun expressionStmt(): Stmt.Expression {
         val expr = expr()
 
-        val context = expr.context..<here()
-
         mustSkip(SEMICOLON)
 
-        return Stmt.Expression(context, expr)
+        return Stmt.Expression(expr.context, expr)
     }
 
     private fun expr() =
@@ -520,14 +485,12 @@ class Parser(private val lexer: Lexer) {
 
         if (!matchAny(*Symbol.compoundAssignOperators)) return expr
 
-        val op = peek()
+        val (context, op) = peek()
 
-        mustSkip(op.type)
+        mustSkip(op)
 
         fun desugar(newOp: Expr.Binary.Operator): Expr.Assign {
             val right = disjunction()
-
-            val context = expr.context..<right.context
 
             return Expr.Assign(
                 context,
@@ -536,7 +499,7 @@ class Parser(private val lexer: Lexer) {
             )
         }
 
-        return when (op.type) {
+        return when (op) {
             PLUS_EQUAL           -> desugar(Expr.Binary.Operator.ADD)
 
             DASH_EQUAL           -> desugar(Expr.Binary.Operator.SUBTRACT)
@@ -562,8 +525,6 @@ class Parser(private val lexer: Lexer) {
             else                 -> {
                 val right = disjunction()
 
-                val context = expr.context..<right.context
-
                 Expr.Assign(context, expr, right)
             }
         }
@@ -576,15 +537,13 @@ class Parser(private val lexer: Lexer) {
         var expr = conjunction()
 
         while (match(DOUBLE_PIPE)) {
-            val op = peek()
+            val (context, op) = peek()
 
-            mustSkip(op.type)
+            mustSkip(op)
 
             val right = conjunction()
 
-            val context = expr.context..<right.context
-
-            expr = Expr.Binary(context, Expr.Binary.Operator[op.type], expr, right)
+            expr = Expr.Binary(context, Expr.Binary.Operator[op], expr, right)
         }
 
         return expr
@@ -594,15 +553,13 @@ class Parser(private val lexer: Lexer) {
         var expr = bitwiseDisjunction()
 
         while (match(DOUBLE_AMPERSAND)) {
-            val op = peek()
+            val (context, op) = peek()
 
-            mustSkip(op.type)
+            mustSkip(op)
 
             val right = bitwiseDisjunction()
 
-            val context = expr.context..<right.context
-
-            expr = Expr.Binary(context, Expr.Binary.Operator[op.type], expr, right)
+            expr = Expr.Binary(context, Expr.Binary.Operator[op], expr, right)
         }
 
         return expr
@@ -612,15 +569,13 @@ class Parser(private val lexer: Lexer) {
         var expr = bitwiseExclusiveDisjunction()
 
         while (match(PIPE)) {
-            val op = peek()
+            val (context, op) = peek()
 
-            mustSkip(op.type)
+            mustSkip(op)
 
             val right = bitwiseExclusiveDisjunction()
 
-            val context = expr.context..<right.context
-
-            expr = Expr.Binary(context, Expr.Binary.Operator[op.type], expr, right)
+            expr = Expr.Binary(context, Expr.Binary.Operator[op], expr, right)
         }
 
         return expr
@@ -630,15 +585,13 @@ class Parser(private val lexer: Lexer) {
         var expr = bitwiseConjunction()
 
         while (match(CARET)) {
-            val op = peek()
+            val (context, op) = peek()
 
-            mustSkip(op.type)
+            mustSkip(op)
 
             val right = bitwiseConjunction()
 
-            val context = expr.context..<right.context
-
-            expr = Expr.Binary(context, Expr.Binary.Operator[op.type], expr, right)
+            expr = Expr.Binary(context, Expr.Binary.Operator[op], expr, right)
         }
 
         return expr
@@ -648,15 +601,13 @@ class Parser(private val lexer: Lexer) {
         var expr = equality()
 
         while (match(AMPERSAND)) {
-            val op = peek()
+            val (context, op) = peek()
 
-            mustSkip(op.type)
+            mustSkip(op)
 
             val right = equality()
 
-            val context = expr.context..<right.context
-
-            expr = Expr.Binary(context, Expr.Binary.Operator[op.type], expr, right)
+            expr = Expr.Binary(context, Expr.Binary.Operator[op], expr, right)
         }
 
         return expr
@@ -666,15 +617,13 @@ class Parser(private val lexer: Lexer) {
         var expr = comparison()
 
         while (matchAny(DOUBLE_EQUAL, EXCLAMATION_EQUAL)) {
-            val op = peek()
+            val (context, op) = peek()
 
-            mustSkip(op.type)
+            mustSkip(op)
 
             val right = comparison()
 
-            val context = expr.context..<right.context
-
-            expr = Expr.Binary(context, Expr.Binary.Operator[op.type], expr, right)
+            expr = Expr.Binary(context, Expr.Binary.Operator[op], expr, right)
         }
 
         return expr
@@ -684,15 +633,13 @@ class Parser(private val lexer: Lexer) {
         var expr = bounding()
 
         while (matchAny(LESS_SIGN, LESS_EQUAL_SIGN, GREATER_SIGN, GREATER_EQUAL_SIGN)) {
-            val op = peek()
+            val (context, op) = peek()
 
-            mustSkip(op.type)
+            mustSkip(op)
 
             val right = bounding()
 
-            val context = expr.context..<right.context
-
-            expr = Expr.Binary(context, Expr.Binary.Operator[op.type], expr, right)
+            expr = Expr.Binary(context, Expr.Binary.Operator[op], expr, right)
         }
 
         return expr
@@ -702,15 +649,13 @@ class Parser(private val lexer: Lexer) {
         var expr = infix()
 
         while (matchAny(IN, EXCLAMATION_IN, IS, EXCLAMATION_IS)) {
-            val op = peek()
+            val (context, op) = peek()
 
-            mustSkip(op.type)
+            mustSkip(op)
 
             val right = infix()
 
-            val context = expr.context..<right.context
-
-            expr = Expr.Binary(context, Expr.Binary.Operator[op.type], expr, right)
+            expr = Expr.Binary(context, Expr.Binary.Operator[op], expr, right)
         }
 
         return expr
@@ -726,7 +671,7 @@ class Parser(private val lexer: Lexer) {
 
             val arg = subExpr().toArg()
 
-            expr = Expr.Invoke(name.context..<arg.context, target, listOf(arg))
+            expr = Expr.Invoke(name.context, target, listOf(arg))
         }
 
         return expr
@@ -736,15 +681,13 @@ class Parser(private val lexer: Lexer) {
         var expr = shifting()
 
         while (matchAny(DOUBLE_DOT, TRIPLE_DOT)) {
-            val op = peek()
+            val (context, op) = peek()
 
-            mustSkip(op.type)
+            mustSkip(op)
 
             val right = shifting()
 
-            val context = expr.context..<right.context
-
-            expr = Expr.Binary(context, Expr.Binary.Operator[op.type], expr, right)
+            expr = Expr.Binary(context, Expr.Binary.Operator[op], expr, right)
         }
 
         return expr
@@ -754,15 +697,13 @@ class Parser(private val lexer: Lexer) {
         var expr = additive()
 
         while (matchAny(DOUBLE_LESS, DOUBLE_GREATER, TRIPLE_GREATER)) {
-            val op = peek()
+            val (context, op) = peek()
 
-            mustSkip(op.type)
+            mustSkip(op)
 
             val right = additive()
 
-            val context = expr.context..<right.context
-
-            expr = Expr.Binary(context, Expr.Binary.Operator[op.type], expr, right)
+            expr = Expr.Binary(context, Expr.Binary.Operator[op], expr, right)
         }
 
         return expr
@@ -772,15 +713,13 @@ class Parser(private val lexer: Lexer) {
         var expr = multiplicative()
 
         while (matchAny(PLUS, DASH)) {
-            val op = peek()
+            val (context, op) = peek()
 
-            mustSkip(op.type)
+            mustSkip(op)
 
             val right = multiplicative()
 
-            val context = expr.context..<right.context
-
-            expr = Expr.Binary(context, Expr.Binary.Operator[op.type], expr, right)
+            expr = Expr.Binary(context, Expr.Binary.Operator[op], expr, right)
         }
 
         return expr
@@ -790,15 +729,13 @@ class Parser(private val lexer: Lexer) {
         var expr = casting()
 
         while (matchAny(STAR, SLASH, PERCENT)) {
-            val op = peek()
+            val (context, op) = peek()
 
-            mustSkip(op.type)
+            mustSkip(op)
 
             val right = casting()
 
-            val context = expr.context..<right.context
-
-            expr = Expr.Binary(context, Expr.Binary.Operator[op.type], expr, right)
+            expr = Expr.Binary(context, Expr.Binary.Operator[op], expr, right)
         }
 
         return expr
@@ -808,15 +745,13 @@ class Parser(private val lexer: Lexer) {
         var expr = prefix()
 
         while (match(AS)) {
-            val op = peek()
+            val (context, op) = peek()
 
-            mustSkip(op.type)
+            mustSkip(op)
 
             val right = typeExpr()
 
-            val context = expr.context..<right.context
-
-            expr = Expr.Binary(context, Expr.Binary.Operator[op.type], expr, right)
+            expr = Expr.Binary(context, Expr.Binary.Operator[op], expr, right)
         }
 
         return expr
@@ -835,15 +770,13 @@ class Parser(private val lexer: Lexer) {
         )
             return postfix()
 
-        val op = peek()
+        val (context, op) = peek()
 
-        mustSkip(op.type)
+        mustSkip(op)
 
         val right = typeExpr()
 
-        val context = op.context..<right.context
-
-        return Expr.Prefix(context, Expr.Prefix.Operator[op.type], prefix())
+        return Expr.Prefix(context, Expr.Prefix.Operator[op], prefix())
     }
 
     private fun postfix(): Expr {
@@ -859,15 +792,15 @@ class Parser(private val lexer: Lexer) {
                 LEFT_BRACE
             )
         ) {
-            val op = peek()
+            val (context, op) = peek()
 
             expr = when {
                 skipAny(
                     DOUBLE_PLUS,
                     DOUBLE_DASH
-                )                 -> Expr.Postfix(expr.context..<op.context, Expr.Postfix.Operator[op.type], expr)
+                )                 -> Expr.Postfix(context, Expr.Postfix.Operator[op], expr)
 
-                skip(DOT)         -> Expr.GetMember(op.context, expr, nameExpr())
+                skip(DOT)         -> Expr.GetMember(context, expr, nameExpr())
 
                 skip(LEFT_SQUARE) -> {
                     val indices = mutableListOf<Expr>()
@@ -908,7 +841,7 @@ class Parser(private val lexer: Lexer) {
                                     n
                                 }
                                 else {
-                                    HyperError.forParser("", argExpr.context)
+                                    hyperError("", argExpr.context)
                                 }
                             }
                             else {
@@ -922,7 +855,7 @@ class Parser(private val lexer: Lexer) {
                         mustSkip(RIGHT_PAREN)
                     }
 
-                    Expr.Invoke(op.context, expr, args)
+                    Expr.Invoke(context, expr, args)
                 }
 
                 else              -> error("Broken postfix error!")
@@ -1012,7 +945,7 @@ class Parser(private val lexer: Lexer) {
                             .toString()
                             .equals(it.name, true)
                     }
-                    ?: HyperError.forParser("Token type '${token.type}' is not a valid base data type!", token.context)
+                    ?: hyperError("Token type '${token.type}' is not a valid base data type!", token.context)
 
                 mustSkip(token.type)
 
@@ -1059,7 +992,7 @@ class Parser(private val lexer: Lexer) {
                 type = DataType.Range(type)
             }
             else {
-                HyperError.forParser("Range subtype '$type' is invalid!", here())
+                hyperError("Range subtype '$type' is invalid!", here())
             }
         }
 
@@ -1229,7 +1162,7 @@ class Parser(private val lexer: Lexer) {
                 Expr.Block(loc, exprs)
             }
 
-            else             -> HyperError.forParser("Missing body!", here())
+            else             -> hyperError("Missing body!", here())
         }
     }
 

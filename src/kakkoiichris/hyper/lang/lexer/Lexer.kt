@@ -11,7 +11,6 @@
  */
 package kakkoiichris.hyper.lang.lexer
 
-import kakkoiichris.hyper.lang.util.HyperError
 import kakkoiichris.hyper.lang.util.Source
 import kakkoiichris.hyper.lang.util.hyperError
 
@@ -37,6 +36,8 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
     private var row = 1
     private var col = 1
 
+    private val lexeme = StringBuilder()
+
     override fun hasNext() =
         pos <= source.text.length + 1
 
@@ -59,6 +60,8 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
 
                 continue
             }
+
+            lexeme.clear()
 
             return when {
                 match { it.isDigit() }     -> number()
@@ -96,11 +99,12 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
 
     private fun step(count: Int = 1) {
         repeat(count) {
+            lexeme.append(peek())
+
             if (match('\n')) {
                 row++
                 col = 1
-            }
-            else {
+            } else {
                 col++
             }
 
@@ -199,7 +203,7 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
         this in "01_"
 
     private fun binaryNumber(): Token<Value> {
-        val start = here()
+        var context = here()
 
         step(2)
 
@@ -210,8 +214,7 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
                 skip('_')
 
                 take()
-            }
-            while (match { it.isBinary() })
+            } while (match { it.isBinary() })
         }
 
         val number: Any = when {
@@ -227,7 +230,9 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
             else              -> result.toIntOrNull(2) ?: TODO()
         }
 
-        val context = start..<here()
+        val lexeme = lexeme.toString()
+
+        context = context.withLexeme(lexeme)
 
         val type = Value(number)
 
@@ -241,7 +246,7 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
         isDigit() || lowercaseChar() in 'a'..'f' || this == '_'
 
     private fun hexadecimalNumber(): Token<Value> {
-        val start = here()
+        var context = here()
 
         step(2)
 
@@ -252,8 +257,7 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
                 skip('_')
 
                 take()
-            }
-            while (match { it.isHexadecimal() })
+            } while (match { it.isHexadecimal() })
         }
 
         val number: Any = when {
@@ -269,7 +273,9 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
             else              -> result.toIntOrNull(16) ?: TODO()
         }
 
-        val context = start..<here()
+        val lexeme = lexeme.toString()
+
+        context = context.withLexeme(lexeme)
 
         val type = Value(number)
 
@@ -286,7 +292,7 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
         lowercaseChar() in ".e"
 
     private fun decimalNumber(): Token<Value> {
-        val start = here()
+        var context = here()
 
         if (!match { it.isDecimalStart() }) TODO()
 
@@ -295,8 +301,7 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
                 skip('_')
 
                 take()
-            }
-            while (match { it.isDecimal() })
+            } while (match { it.isDecimal() })
         }
 
         if (!match { it.isFloatStart() }) {
@@ -313,7 +318,9 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
                 else              -> result.toIntOrNull() ?: TODO()
             }
 
-            val context = start..<here()
+            val lexeme = lexeme.toString()
+
+            context = context.withLexeme(lexeme)
 
             val type = Value(number)
 
@@ -328,8 +335,7 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
                     skip('_')
 
                     take()
-                }
-                while (match { it.isDecimal() })
+                } while (match { it.isDecimal() })
             }
 
             if (match { it.lowercaseChar() == 'e' }) {
@@ -339,8 +345,7 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
                     skip('_')
 
                     take()
-                }
-                while (match { it.isDecimal() })
+                } while (match { it.isDecimal() })
             }
         }
 
@@ -351,7 +356,9 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
             else              -> result.toDoubleOrNull() ?: TODO()
         }
 
-        val context = start..<here()
+        val lexeme = lexeme.toString()
+
+        context = context.withLexeme(lexeme)
 
         val type = Value(number)
 
@@ -359,16 +366,17 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
     }
 
     private fun word(): Token<*> {
-        val start = here()
+        var context = here()
 
         val result = buildString {
             do {
                 take()
-            }
-            while (match { it.isWord() })
+            } while (match { it.isWord() })
         }
 
-        val context = start..<here()
+        val lexeme = lexeme.toString()
+
+        context = context.withLexeme(lexeme)
 
         val keyword = keywords[result]
 
@@ -392,7 +400,7 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
     }
 
     private fun unicode(size: Int): Char {
-        val loc = here()
+        var context = here()
 
         val result = buildString {
             repeat(size) {
@@ -400,7 +408,11 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
             }
         }
 
-        return result.toIntOrNull(16)?.toChar() ?: hyperError("Unicode value '$result' is invalid!", loc)
+        val lexeme = lexeme.toString()
+
+        context = context.withLexeme(lexeme)
+
+        return result.toIntOrNull(16)?.toChar() ?: hyperError("Unicode value '$result' is invalid!", context)
     }
 
     private fun charEscape(): Char {
@@ -444,14 +456,13 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
     }
 
     private fun char(): Token<Value> {
-        val start = here()
+        var context = here()
 
         mustSkip('\'')
 
         val result = if (match('\\')) {
             charEscape()
-        }
-        else {
+        } else {
             val char = peek()
 
             mustSkip(char)
@@ -461,7 +472,9 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
 
         mustSkip('\'')
 
-        val context = start..<here()
+        val lexeme = lexeme.toString()
+
+        context = context.withLexeme(lexeme)
 
         return Token(context, Value(result))
     }
@@ -512,7 +525,7 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
     }
 
     private fun string(): Token<*> {
-        val start = here()
+        var context = here()
 
         mustSkip('"')
 
@@ -521,11 +534,11 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
         val result = buildString {
             while (!match('"')) {
                 if (match(NUL)) {
-                    hyperError("Reached end of file inside of a string!", start.withRegion(col..col + 1))
+                    hyperError("Reached end of file inside of a string!", context.withLexeme(lexeme.toString()))
                 }
 
                 if (match { it.isEndOfLine() }) {
-                    hyperError("String cannot be multiline!", start.withRegion(col..col + 1))
+                    hyperError("String cannot be multiline!", context.withLexeme(lexeme.toString()))
                 }
 
                 if (match('\\')) {
@@ -546,7 +559,9 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
 
         mustSkip(if (movedIn) '`' else '"')
 
-        val context = start..<here()
+        val lexeme = lexeme.toString()
+
+        context = context.withLexeme(lexeme)
 
         val type = if (movedIn)
             LeftTemplate(result)
@@ -557,7 +572,7 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
     }
 
     private fun template(): Token<*> {
-        val start = here()
+        var context = here()
 
         mustSkip('`')
 
@@ -566,11 +581,11 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
         val result = buildString {
             while (!match('"')) {
                 if (match(NUL)) {
-                    hyperError("Reached end of file inside of a string!", start.withRegion(col..col + 1))
+                    hyperError("Reached end of file inside of a string!", context.withLexeme(lexeme.toString()))
                 }
 
                 if (match { it.isEndOfLine() }) {
-                    hyperError("String cannot be multiline!", start.withRegion(col..col + 1))
+                    hyperError("String cannot be multiline!", context.withLexeme(lexeme.toString()))
                 }
 
                 if (match('\\')) {
@@ -591,7 +606,9 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
 
         mustSkip(if (movedOut) '"' else '`')
 
-        val context = start..<here()
+        val lexeme = lexeme.toString()
+
+        context = context.withLexeme(lexeme)
 
         val type = if (movedOut)
             RightTemplate(result)
@@ -602,7 +619,7 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
     }
 
     private fun symbol(): Token<Symbol> {
-        val start = here()
+        var context = here()
 
         val type = when {
             skip('=') -> when {
@@ -756,7 +773,9 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
             else      -> hyperError("Character '${peek()}' is invalid!", here())
         }
 
-        val context = start..<here()
+        val lexeme = lexeme.toString()
+
+        context = context.withLexeme(lexeme)
 
         return Token(context, type)
     }

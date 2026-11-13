@@ -22,7 +22,7 @@ import kakkoiichris.hyper.lang.lexer.Context
  */
 
 fun Expr.toArg() =
-    Expr.Invoke.Argument(Context.none, false, Expr.Name.none, this)
+    Expr.Invoke.Argument(Context.none(), false, Expr.Name.none, this)
 
 fun Any.toExpr() =
-    Expr.Value(Context.none, this)
+    Expr.Value(Context.none(), this)
