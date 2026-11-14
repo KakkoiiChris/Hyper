@@ -76,7 +76,7 @@ sealed class Expr(val context: Context) {
 
             companion object {
                 operator fun get(type: TokenType) =
-                    values().first { it.type == type }
+                    entries.first { it.type == type }
             }
         }
     }
@@ -91,7 +91,7 @@ sealed class Expr(val context: Context) {
 
             companion object {
                 operator fun get(type: TokenType) =
-                    values().first { it.type == type }
+                    entries.first { it.type == type }
             }
         }
     }
@@ -115,7 +115,7 @@ sealed class Expr(val context: Context) {
 
             companion object {
                 operator fun get(type: TokenType) =
-                    values().first { it.type == type }
+                    entries.first { it.type == type }
             }
         }
     }

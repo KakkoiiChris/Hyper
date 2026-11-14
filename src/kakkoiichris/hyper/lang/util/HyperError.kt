@@ -12,7 +12,6 @@
 package kakkoiichris.hyper.lang.util
 
 import kakkoiichris.hyper.lang.lexer.Context
-import kotlin.toString
 
 /**
  * Hyper > HyperError.kt
@@ -57,7 +56,7 @@ fun hyperError(message: String, source: Source, context: Context): Nothing {
  *
  * @throws HyperError
  */
-fun hyperError(message: String, context: Context): Nothing=
+fun hyperError(message: String, context: Context): Nothing =
     hyperError(message, context.source, context)
 
 /**

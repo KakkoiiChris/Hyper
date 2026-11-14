@@ -21,6 +21,7 @@ package kakkoiichris.hyper.lang.lexer
 sealed interface TokenType
 
 enum class Keyword : TokenType {
+    MOD,
     LET,
     VAR,
     MUT,
@@ -115,7 +116,6 @@ enum class Symbol(val value: String) : TokenType {
     RIGHT_BRACE("}"),
     COMMA(","),
     SEMICOLON(";"),
-    AT("@"),
     END_OF_FILE("0");
 
     companion object {

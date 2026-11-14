@@ -18,4 +18,4 @@ package kakkoiichris.hyper.lang.parser
  *
  * @author Christian Bryce Alexander
  */
-class Program(private val stmts: List<Stmt>) : Iterator<Stmt> by stmts.listIterator()
+class Program(private val modules: List<Module>) : Iterator<Module> by modules.listIterator()

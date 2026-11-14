@@ -104,7 +104,8 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
             if (match('\n')) {
                 row++
                 col = 1
-            } else {
+            }
+            else {
                 col++
             }
 
@@ -207,28 +208,32 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
 
         step(2)
 
-        if (!match { it.isBinaryStart() }) TODO()
+        if (!match { it.isBinaryStart() }) {
+            hyperError("Binary number starting digit '${peek()}' is invalid", here())
+        }
 
         val result = buildString {
             do {
                 skip('_')
 
                 take()
-            } while (match { it.isBinary() })
+            }
+            while (match { it.isBinary() })
         }
 
         val number: Any = when {
-            skip("u8", true)  -> result.toUByteOrNull(2) ?: TODO()
-            skip("u16", true) -> result.toUShortOrNull(2) ?: TODO()
-            skip("u32", true) -> result.toUIntOrNull(2) ?: TODO()
-            skip("u64", true) -> result.toULongOrNull(2) ?: TODO()
-            skip("u", true)   -> result.toUIntOrNull(2) ?: TODO()
-            skip("i8", true)  -> result.toByteOrNull(2) ?: TODO()
-            skip("i16", true) -> result.toShortOrNull(2) ?: TODO()
-            skip("i32", true) -> result.toIntOrNull(2) ?: TODO()
-            skip("i64", true) -> result.toLongOrNull(2) ?: TODO()
-            else              -> result.toIntOrNull(2) ?: TODO()
+            skip("u8", true)  -> result.toUByteOrNull(2)
+            skip("u16", true) -> result.toUShortOrNull(2)
+            skip("u32", true) -> result.toUIntOrNull(2)
+            skip("u64", true) -> result.toULongOrNull(2)
+            skip("u", true)   -> result.toUIntOrNull(2)
+            skip("i8", true)  -> result.toByteOrNull(2)
+            skip("i16", true) -> result.toShortOrNull(2)
+            skip("i32", true) -> result.toIntOrNull(2)
+            skip("i64", true) -> result.toLongOrNull(2)
+            else              -> result.toIntOrNull(2)
         }
+            ?: hyperError("Invalid number", context.withLexeme(lexeme.toString()))
 
         val lexeme = lexeme.toString()
 
@@ -250,28 +255,32 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
 
         step(2)
 
-        if (!match { it.isHexadecimalStart() }) TODO()
+        if (!match { it.isHexadecimalStart() }) {
+            hyperError("Hexadecimal number starting digit '${peek()}' is invalid", here())
+        }
 
         val result = buildString {
             do {
                 skip('_')
 
                 take()
-            } while (match { it.isHexadecimal() })
+            }
+            while (match { it.isHexadecimal() })
         }
 
         val number: Any = when {
-            skip("u8", true)  -> result.toUByteOrNull(16) ?: TODO()
-            skip("u16", true) -> result.toUShortOrNull(16) ?: TODO()
-            skip("u32", true) -> result.toUIntOrNull(16) ?: TODO()
-            skip("u64", true) -> result.toULongOrNull(16) ?: TODO()
-            skip("u", true)   -> result.toUIntOrNull(16) ?: TODO()
-            skip("i8", true)  -> result.toUByteOrNull(16) ?: TODO()
-            skip("i16", true) -> result.toUShortOrNull(16) ?: TODO()
-            skip("i32", true) -> result.toUIntOrNull(16) ?: TODO()
-            skip("i64", true) -> result.toULongOrNull(16) ?: TODO()
-            else              -> result.toIntOrNull(16) ?: TODO()
+            skip("u8", true)  -> result.toUByteOrNull(16)
+            skip("u16", true) -> result.toUShortOrNull(16)
+            skip("u32", true) -> result.toUIntOrNull(16)
+            skip("u64", true) -> result.toULongOrNull(16)
+            skip("u", true)   -> result.toUIntOrNull(16)
+            skip("i8", true)  -> result.toUByteOrNull(16)
+            skip("i16", true) -> result.toUShortOrNull(16)
+            skip("i32", true) -> result.toUIntOrNull(16)
+            skip("i64", true) -> result.toULongOrNull(16)
+            else              -> result.toIntOrNull(16)
         }
+            ?: hyperError("Invalid number", context.withLexeme(lexeme.toString()))
 
         val lexeme = lexeme.toString()
 
@@ -294,29 +303,33 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
     private fun decimalNumber(): Token<Value> {
         var context = here()
 
-        if (!match { it.isDecimalStart() }) TODO()
+        if (!match { it.isDecimalStart() }) {
+            hyperError("Decimal number starting digit '${peek()}' is invalid", here())
+        }
 
         var result = buildString {
             do {
                 skip('_')
 
                 take()
-            } while (match { it.isDecimal() })
+            }
+            while (match { it.isDecimal() })
         }
 
         if (!match { it.isFloatStart() }) {
             val number: Any = when {
-                skip("u8", true)  -> result.toUByteOrNull() ?: TODO()
-                skip("u16", true) -> result.toUShortOrNull() ?: TODO()
-                skip("u32", true) -> result.toUIntOrNull() ?: TODO()
-                skip("u64", true) -> result.toULongOrNull() ?: TODO()
-                skip("u", true)   -> result.toUIntOrNull() ?: TODO()
-                skip("i8", true)  -> result.toByteOrNull() ?: TODO()
-                skip("i16", true) -> result.toShortOrNull() ?: TODO()
-                skip("i32", true) -> result.toIntOrNull() ?: TODO()
-                skip("i64", true) -> result.toLongOrNull() ?: TODO()
-                else              -> result.toIntOrNull() ?: TODO()
+                skip("u8", true)  -> result.toUByteOrNull()
+                skip("u16", true) -> result.toUShortOrNull()
+                skip("u32", true) -> result.toUIntOrNull()
+                skip("u64", true) -> result.toULongOrNull()
+                skip("u", true)   -> result.toUIntOrNull()
+                skip("i8", true)  -> result.toByteOrNull()
+                skip("i16", true) -> result.toShortOrNull()
+                skip("i32", true) -> result.toIntOrNull()
+                skip("i64", true) -> result.toLongOrNull()
+                else              -> result.toIntOrNull()
             }
+                ?: hyperError("Invalid number", context.withLexeme(lexeme.toString()))
 
             val lexeme = lexeme.toString()
 
@@ -335,7 +348,8 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
                     skip('_')
 
                     take()
-                } while (match { it.isDecimal() })
+                }
+                while (match { it.isDecimal() })
             }
 
             if (match { it.lowercaseChar() == 'e' }) {
@@ -345,16 +359,18 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
                     skip('_')
 
                     take()
-                } while (match { it.isDecimal() })
+                }
+                while (match { it.isDecimal() })
             }
         }
 
         val number: Any = when {
-            skip("f32", true) -> result.toFloatOrNull() ?: TODO()
-            skip("f", true)   -> result.toFloatOrNull() ?: TODO()
-            skip("f64", true) -> result.toDoubleOrNull() ?: TODO()
-            else              -> result.toDoubleOrNull() ?: TODO()
+            skip("f32", true) -> result.toFloatOrNull()
+            skip("f", true)   -> result.toFloatOrNull()
+            skip("f64", true) -> result.toDoubleOrNull()
+            else              -> result.toDoubleOrNull()
         }
+            ?: hyperError("Invalid number", context.withLexeme(lexeme.toString()))
 
         val lexeme = lexeme.toString()
 
@@ -371,7 +387,8 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
         val result = buildString {
             do {
                 take()
-            } while (match { it.isWord() })
+            }
+            while (match { it.isWord() })
         }
 
         val lexeme = lexeme.toString()
@@ -462,7 +479,8 @@ class Lexer(private val source: Source) : Iterator<Token<*>> {
 
         val result = if (match('\\')) {
             charEscape()
-        } else {
+        }
+        else {
             val char = peek()
 
             mustSkip(char)

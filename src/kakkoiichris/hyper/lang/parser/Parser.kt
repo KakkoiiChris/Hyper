@@ -14,8 +14,8 @@ package kakkoiichris.hyper.lang.parser
 import kakkoiichris.hyper.lang.lexer.*
 import kakkoiichris.hyper.lang.lexer.Keyword.*
 import kakkoiichris.hyper.lang.lexer.Symbol.*
-import kakkoiichris.hyper.lang.util.HyperError
 import kakkoiichris.hyper.lang.util.hyperError
+import java.util.Stack
 
 /**
  * Hyper > Parser.kt
@@ -24,38 +24,38 @@ import kakkoiichris.hyper.lang.util.hyperError
  *
  * @author Christian Bryce Alexander
  */
-class Parser(private val lexer: Lexer) {
-    private var token = lexer.next()
+class Parser(lexer: Lexer) {
+    private val lexers = Stack<Lexer>()
 
-    fun parse(): Program {
-        val stmts = mutableListOf<Stmt>()
+    private lateinit var token: Token<*>
 
-        while (!skip(END_OF_FILE)) {
-            stmts += stmt()
-        }
-
-        return Program(stmts)
+    init {
+        lexers.push(lexer)
     }
 
-    private fun peek() =
-        token
+    fun parse() =
+        program()
 
     private fun step() {
-        token = lexer.next()
+        if (lexers.isEmpty()) return
+
+        if (lexers.peek().hasNext()) {
+            token = lexers.peek().next()
+        }
     }
 
     private fun match(type: TokenType) =
-        peek().type == type
+        token.type == type
 
     private inline fun <reified T : TokenType> match(): Boolean {
-        val type = peek().type
+        val type = token.type
 
         return type is T
     }
 
     private fun matchAny(vararg types: TokenType): Boolean {
         for (type in types) {
-            if (peek().type == type) {
+            if (token.type == type) {
                 return true
             }
         }
@@ -64,7 +64,7 @@ class Parser(private val lexer: Lexer) {
     }
 
     private fun skip(type: TokenType) =
-        if (peek().type == type) {
+        if (token.type == type) {
             step()
             true
         }
@@ -72,55 +72,58 @@ class Parser(private val lexer: Lexer) {
             false
         }
 
-    private inline fun <reified T : TokenType> skip(): Boolean {
-        val type = peek().type
+    private inline fun <reified T : TokenType> take(): T {
+        val type = token.type
 
-        if (type is T) {
-            step()
+        type as? T ?: error("Broken token type '$type'!")
 
-            return true
-        }
+        step()
 
-        return false
-    }
-
-    private inline fun <reified T : TokenType> take(): T? {
-        val type = peek().type
-
-        if (type is T) {
-            step()
-
-            return type
-        }
-
-        return null
-    }
-
-    private fun skipAny(vararg types: TokenType): Boolean {
-        for (type in types) {
-            if (peek().type == type) {
-                step()
-                return true
-            }
-        }
-
-        return false
+        return type
     }
 
     private fun mustSkip(type: TokenType) {
         if (!skip(type)) {
-            hyperError("Expected type $type; got ${peek().type} instead!", token.context)
-        }
-    }
-
-    private inline fun <reified T : TokenType> mustSkip() {
-        if (!skip<T>()) {
-            hyperError("Expected type ${T::class.simpleName}; got ${peek().type} instead!", token.context)
+            hyperError("Expected type $type; got ${token.type} instead!", token.context)
         }
     }
 
     private fun here() =
-        peek().context
+        token.context
+
+    private fun program(): Program {
+        val mods = mutableListOf<Module>()
+
+        var isRoot = true
+
+        while (!skip(END_OF_FILE)) {
+            mods += module(isRoot)
+
+            isRoot = false
+        }
+
+        return Program(mods)
+    }
+
+    private fun module(isRoot: Boolean): Module {
+        var name = ""
+
+        if (!isRoot) {
+            mustSkip(MOD)
+
+            name = nameExpr().value
+
+            mustSkip(Symbol.SEMICOLON)
+        }
+
+        val stmts = mutableListOf<Stmt>()
+
+        while (!skip(END_OF_FILE)) {
+            stmts += stmt()
+        }
+
+        return Module(Context.none(), name, emptyList(), emptyList())
+    }
 
     private fun stmt(): Stmt =
         when {
@@ -183,7 +186,7 @@ class Parser(private val lexer: Lexer) {
         val assigned = skip(EQUAL_SIGN)
 
         if (!(typed || assigned)) {
-            TODO("MUST TYPE OR ASSIGN")
+            hyperError("Declaration must either have a data type or be assigned", here())
         }
 
         if (assigned) {
@@ -337,7 +340,7 @@ class Parser(private val lexer: Lexer) {
             type = typeExpr()
         }
 
-        val startBody = peek()
+        val startBody = token
 
         val body = when (startBody.type) {
             SEMICOLON  -> {
@@ -356,7 +359,7 @@ class Parser(private val lexer: Lexer) {
 
             LEFT_BRACE -> blockStmt()
 
-            else       -> TODO("FUN BODY")
+            else       -> hyperError("Function body is missing: use a ';', '->', or '{...}'", here())
         }
 
         return Stmt.Fun(context, name, self, args, type, body)
@@ -485,7 +488,7 @@ class Parser(private val lexer: Lexer) {
 
         if (!matchAny(*Symbol.compoundAssignOperators)) return expr
 
-        val (context, op) = peek()
+        val (context, op) = token
 
         mustSkip(op)
 
@@ -537,7 +540,7 @@ class Parser(private val lexer: Lexer) {
         var expr = conjunction()
 
         while (match(DOUBLE_PIPE)) {
-            val (context, op) = peek()
+            val (context, op) = token
 
             mustSkip(op)
 
@@ -553,7 +556,7 @@ class Parser(private val lexer: Lexer) {
         var expr = bitwiseDisjunction()
 
         while (match(DOUBLE_AMPERSAND)) {
-            val (context, op) = peek()
+            val (context, op) = token
 
             mustSkip(op)
 
@@ -569,7 +572,7 @@ class Parser(private val lexer: Lexer) {
         var expr = bitwiseExclusiveDisjunction()
 
         while (match(PIPE)) {
-            val (context, op) = peek()
+            val (context, op) = token
 
             mustSkip(op)
 
@@ -585,7 +588,7 @@ class Parser(private val lexer: Lexer) {
         var expr = bitwiseConjunction()
 
         while (match(CARET)) {
-            val (context, op) = peek()
+            val (context, op) = token
 
             mustSkip(op)
 
@@ -601,7 +604,7 @@ class Parser(private val lexer: Lexer) {
         var expr = equality()
 
         while (match(AMPERSAND)) {
-            val (context, op) = peek()
+            val (context, op) = token
 
             mustSkip(op)
 
@@ -617,7 +620,7 @@ class Parser(private val lexer: Lexer) {
         var expr = comparison()
 
         while (matchAny(DOUBLE_EQUAL, EXCLAMATION_EQUAL)) {
-            val (context, op) = peek()
+            val (context, op) = token
 
             mustSkip(op)
 
@@ -633,7 +636,7 @@ class Parser(private val lexer: Lexer) {
         var expr = bounding()
 
         while (matchAny(LESS_SIGN, LESS_EQUAL_SIGN, GREATER_SIGN, GREATER_EQUAL_SIGN)) {
-            val (context, op) = peek()
+            val (context, op) = token
 
             mustSkip(op)
 
@@ -649,7 +652,7 @@ class Parser(private val lexer: Lexer) {
         var expr = infix()
 
         while (matchAny(IN, EXCLAMATION_IN, IS, EXCLAMATION_IS)) {
-            val (context, op) = peek()
+            val (context, op) = token
 
             mustSkip(op)
 
@@ -681,7 +684,7 @@ class Parser(private val lexer: Lexer) {
         var expr = shifting()
 
         while (matchAny(DOUBLE_DOT, TRIPLE_DOT)) {
-            val (context, op) = peek()
+            val (context, op) = token
 
             mustSkip(op)
 
@@ -697,7 +700,7 @@ class Parser(private val lexer: Lexer) {
         var expr = additive()
 
         while (matchAny(DOUBLE_LESS, DOUBLE_GREATER, TRIPLE_GREATER)) {
-            val (context, op) = peek()
+            val (context, op) = token
 
             mustSkip(op)
 
@@ -713,7 +716,7 @@ class Parser(private val lexer: Lexer) {
         var expr = multiplicative()
 
         while (matchAny(PLUS, DASH)) {
-            val (context, op) = peek()
+            val (context, op) = token
 
             mustSkip(op)
 
@@ -729,7 +732,7 @@ class Parser(private val lexer: Lexer) {
         var expr = casting()
 
         while (matchAny(STAR, SLASH, PERCENT)) {
-            val (context, op) = peek()
+            val (context, op) = token
 
             mustSkip(op)
 
@@ -745,7 +748,7 @@ class Parser(private val lexer: Lexer) {
         var expr = prefix()
 
         while (match(AS)) {
-            val (context, op) = peek()
+            val (context, op) = token
 
             mustSkip(op)
 
@@ -770,11 +773,9 @@ class Parser(private val lexer: Lexer) {
         )
             return postfix()
 
-        val (context, op) = peek()
+        val (context, op) = token
 
         mustSkip(op)
-
-        val right = typeExpr()
 
         return Expr.Prefix(context, Expr.Prefix.Operator[op], prefix())
     }
@@ -792,17 +793,14 @@ class Parser(private val lexer: Lexer) {
                 LEFT_BRACE
             )
         ) {
-            val (context, op) = peek()
+            val (context, op) = token
 
             expr = when {
-                skipAny(
-                    DOUBLE_PLUS,
-                    DOUBLE_DASH
-                )                 -> Expr.Postfix(context, Expr.Postfix.Operator[op], expr)
+                skip(DOUBLE_PLUS) || skip(DOUBLE_DASH) -> Expr.Postfix(context, Expr.Postfix.Operator[op], expr)
 
-                skip(DOT)         -> Expr.GetMember(context, expr, nameExpr())
+                skip(DOT)                              -> Expr.GetMember(context, expr, nameExpr())
 
-                skip(LEFT_SQUARE) -> {
+                skip(LEFT_SQUARE)                      -> {
                     val indices = mutableListOf<Expr>()
 
                     do {
@@ -821,7 +819,7 @@ class Parser(private val lexer: Lexer) {
                     subExpr
                 }
 
-                skip(LEFT_PAREN)  -> {
+                skip(LEFT_PAREN)                       -> {
                     mustSkip(LEFT_PAREN)
 
                     val args = mutableListOf<Expr.Invoke.Argument>()
@@ -858,7 +856,7 @@ class Parser(private val lexer: Lexer) {
                     Expr.Invoke(context, expr, args)
                 }
 
-                else              -> error("Broken postfix error!")
+                else                                   -> error("Broken postfix error!")
             }
         }
 
@@ -887,14 +885,14 @@ class Parser(private val lexer: Lexer) {
 
             match(CONTINUE)       -> Expr.Statement(here(), continueStmt())
 
-            else                  -> TODO("TERMINAL")
+            else                  -> hyperError("Invalid terminal expression", here())
         }
     }
 
     private fun valueExpr(): Expr.Value {
         val context = here()
 
-        val value = take<Value>() ?: TODO()
+        val value = take<Value>()
 
         return Expr.Value(context, value.value)
     }
@@ -902,7 +900,7 @@ class Parser(private val lexer: Lexer) {
     private fun nameExpr(): Expr.Name {
         val context = here()
 
-        val identifier = take<Identifier>() ?: TODO()
+        val identifier = take<Identifier>()
 
         return Expr.Name(context, identifier.value)
     }
@@ -935,10 +933,9 @@ class Parser(private val lexer: Lexer) {
             }
 
             else                -> {
-                val token = peek()
+                val token = token
 
-                val primitive = DataType.Primitive
-                    .values()
+                val primitive = DataType.Primitive.entries
                     .firstOrNull {
                         token
                             .type
@@ -1008,7 +1005,7 @@ class Parser(private val lexer: Lexer) {
 
         val exprs = mutableListOf<Expr>()
 
-        val left = take<LeftTemplate>() ?: TODO()
+        val left = take<LeftTemplate>()
 
         exprs += Expr.Value(context, left.value)
 
@@ -1016,7 +1013,7 @@ class Parser(private val lexer: Lexer) {
             exprs += when {
                 match<MiddleTemplate>() -> {
                     val middleContext = here()
-                    val middle = take<MiddleTemplate>() ?: TODO()
+                    val middle = take<MiddleTemplate>()
 
                     Expr.Value(middleContext, middle.value)
                 }
@@ -1027,7 +1024,7 @@ class Parser(private val lexer: Lexer) {
 
         val rightContext = here()
 
-        val right = take<RightTemplate>() ?: TODO()
+        val right = take<RightTemplate>()
 
         exprs += Expr.Value(rightContext, right.value)
 
@@ -1067,8 +1064,6 @@ class Parser(private val lexer: Lexer) {
             }
             while (skip(COMMA))
 
-
-
             if (matchAny(FOR, LOOP)) {
                 generator = true
             }
@@ -1105,15 +1100,12 @@ class Parser(private val lexer: Lexer) {
 
                     val iterable = expr()
 
-
                     val condition = if (skip(IF)) {
                         expr()
                     }
                     else {
                         Expr.Empty(here())
                     }
-
-
 
                     mustSkip(RIGHT_SQUARE)
 
@@ -1143,26 +1135,6 @@ class Parser(private val lexer: Lexer) {
             matchAny(LET, VAR, WHILE, LOOP, FOR, BREAK, CONTINUE, RETURN) -> Expr.Statement(loc, stmt())
 
             else                                                          -> expr()
-        }
-    }
-
-    private fun exprBody(): Expr {
-        val loc = here()
-
-        return when {
-            skip(COLON)      -> exprBodyStmt()
-
-            skip(LEFT_BRACE) -> {
-                val exprs = mutableListOf<Expr>()
-
-                while (!skip(RIGHT_BRACE)) {
-                    exprs += exprBodyStmt()
-                }
-
-                Expr.Block(loc, exprs)
-            }
-
-            else             -> hyperError("Missing body!", here())
         }
     }
 

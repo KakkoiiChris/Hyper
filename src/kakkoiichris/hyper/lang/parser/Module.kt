@@ -9,24 +9,20 @@
  *       𝓟𝓻𝓸𝓰𝓻𝓪𝓶𝓶𝓲𝓷𝓰 𝓛𝓪𝓷𝓰𝓾𝓪𝓰𝓮
  *             𝓔𝓼𝓽𝓭. 2018
  */
-package kakkoiichris.hyper.lang.util
+package kakkoiichris.hyper.lang.parser
+
+import kakkoiichris.hyper.lang.lexer.Context
 
 /**
- * Hyper > Stack.kt
+ * Hyper > Module.kt
  * Copyright (C) 2018, KakkoiiChris
- * Saturday, October 22, 2022, 14:09:14
- *
+ * Friday, November 13, 2026, 23:39:36
+ * 
  * @author Christian Bryce Alexander
  */
-class Stack<X> {
-    private val elements = ArrayDeque<X>()
-
-    fun peek() =
-        elements.lastOrNull()
-
-    fun push(x: X) =
-        elements.addLast(x)
-
-    fun pop() =
-        elements.removeLastOrNull()
-}
+class Module(
+    context: Context,
+    val name: String,
+    val declarations: List<Stmt.Declare>,
+    val functions: List<Stmt.Fun>
+)
